@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
 import { UserEntity } from 'src/modules/users/entities/users.entity';
-import { Post } from 'src/modules/post/entities/post.entity';
+import { PostEntity } from 'src/modules/post/entities/post.entity';
 
 @Entity('reactions')
 @Unique(['userId', 'postId'])
@@ -18,7 +18,7 @@ export class Reaction {
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
 
-  @ManyToOne(() => Post, (post) => post.reactions)
+  @ManyToOne(() => PostEntity, (post) => post.reactions)
   @JoinColumn({ name: 'postId' })
-  post: Post;
+  post: PostEntity;
 }
