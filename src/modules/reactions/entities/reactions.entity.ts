@@ -10,8 +10,8 @@ import {
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { Post } from 'src/modules/post/entities/post.entity';
 
-@Entity('reactions')
-@Unique(['user', 'post']) // 🔥 REGLA DEL DOCUMENTO
+@Entity('ReactionsEntity')
+@Unique('unique_user_post_reaction', ['user', 'post']) // 🔥 REGLA DEL DOCUMENTO
 export class Reaction {
   @PrimaryGeneratedColumn()
   id: number;
