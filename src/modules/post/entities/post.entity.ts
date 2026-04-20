@@ -27,6 +27,8 @@ export class Post {
   @OneToMany(() => Comment, (comment) => comment.post)
   comments: Comment[];
 
-  @OneToMany(() => Reaction, (reaction) => reaction.post)
+  @OneToMany(() => Reaction, (reaction) => reaction.post, {
+    cascade: true,
+  })
   reactions: Reaction[];
 }
