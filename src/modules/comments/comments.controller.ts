@@ -38,7 +38,7 @@ export class CommentsController {
     @GetUser() user,
     @Body() dto: UpdateCommentDto,
   ) {
-    return this.commentsService.update(id, user, dto.content);
+    return this.commentsService.update(id, user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'))
