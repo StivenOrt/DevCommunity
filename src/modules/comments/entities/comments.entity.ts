@@ -1,8 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  JoinColumn,
+} from 'typeorm';
+
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { Post } from 'src/modules/post/entities/post.entity';
 
-@Entity('comments')
+@Entity('CommentsEntity')
 export class Comment {
   @PrimaryGeneratedColumn()
   id: number;
@@ -10,20 +18,18 @@ export class Comment {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
-  authorId: number;
-
-  @Column()
-  postId: number;
-
-  @ManyToOne(() => UserEntity, (user) => user.comments)
+  @ManyToOne(() => UserEntity, (user) => user.comments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'authorId' })
   author: UserEntity;
 
-  @ManyToOne(() => Post, (post) => post.comments)
+  @ManyToOne(() => Post, (post) => post.comments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'postId' })
   post: Post;
 }
