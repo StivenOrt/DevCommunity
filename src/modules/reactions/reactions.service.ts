@@ -80,4 +80,13 @@ export class ReactionsService {
       },
     });
   }
+
+  async getAllReactions() {
+  return this.reactionRepository
+    .createQueryBuilder('reaction')
+    .select('reaction.postId', 'postId')
+    .addSelect('COUNT(reaction.id)', 'likes')
+    .groupBy('reaction.postId')
+    .getRawMany();
+}
 }
