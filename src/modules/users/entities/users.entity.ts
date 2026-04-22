@@ -3,7 +3,7 @@ import { RolsEntity } from "../../rols/entities/rols.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Post } from "src/modules/post/entities/post.entity";
 import { Comment } from "src/modules/comments/entities/comments.entity";
-import { Reaction } from "src/modules/reactions/entities/reactions.entity";
+import { ReactionEntity} from "src/modules/reactions/entities/reactions.entity";
 
 
 @Entity('users')
@@ -22,7 +22,7 @@ export class UserEntity {
     password: string;
 
     @Column()
-    roleId: string;
+    roleId: number
 
     @ManyToOne(() => RolsEntity, role => role.users)
     @JoinColumn({ name: 'roleId' })
@@ -34,6 +34,6 @@ export class UserEntity {
     @OneToMany(() => Comment, (comment) => comment.author)
     comments: Comment[];
 
-    @OneToMany(() => Reaction, (reaction) => reaction.user)
-    reactions: Reaction[];
+    @OneToMany(() => ReactionEntity, (reaction) => reaction.user)
+    reactions: ReactionEntity[];
 }

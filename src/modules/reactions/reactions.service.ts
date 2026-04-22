@@ -7,15 +7,15 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Reaction } from './entities/reactions.entity';
+import { ReactionEntity } from './entities/reactions.entity';
 import { CreateReactionDto } from './dto/create-reaction.dto';
 import { Post } from '../post/entities/post.entity';
 
 @Injectable()
 export class ReactionsService {
   constructor(
-    @InjectRepository(Reaction)
-    private reactionRepository: Repository<Reaction>,
+    @InjectRepository(ReactionEntity)
+    private reactionRepository: Repository<ReactionEntity>,
 
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
