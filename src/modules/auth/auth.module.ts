@@ -10,6 +10,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolsGuard } from './guards/rols.guard';
+import { AutorGuard } from './guards/author.guard';
 
 
 @Module({
@@ -27,7 +28,7 @@ import { RolsGuard } from './guards/rols.guard';
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolsGuard],
-  exports: [JwtAuthGuard, RolsGuard],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolsGuard, AutorGuard],
+  exports: [JwtAuthGuard, RolsGuard, AutorGuard],
 })
 export class AuthModule {}

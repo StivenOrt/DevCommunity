@@ -4,7 +4,7 @@ import { CommentsEntity } from 'src/modules/comments/entities/comments.entity';
 import { ReactionEntity } from 'src/modules/reactions/entities/reactions.entity';
 
 @Entity('posts')
-export class Post {
+export class PostEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

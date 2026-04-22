@@ -8,8 +8,7 @@ import {
 } from 'typeorm';
 
 import { UserEntity } from 'src/modules/users/entities/users.entity';
-import { Post } from 'src/modules/post/entities/post.entity';
-import { Column } from 'typeorm';
+import { PostEntity } from 'src/modules/post/entities/post.entity';
 
 @Entity('reactions')
 @Unique(['authorId', 'postId'])
@@ -29,12 +28,11 @@ export class ReactionEntity {
   @Column()
   postId: number;
 
-  @ManyToOne(() => Post, (post) => post.reactions, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'postId' })
-  post: Post;
+  @ManyToOne(() => UserEntity, (user) => user.reactions)
+  @JoinColumn({ name: 'userId' })
+  user: UserEntity;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @ManyToOne(() => PostEntity, (post) => post.reactions)
+  @JoinColumn({ name: 'postId' })
+  post: PostEntity;
 }

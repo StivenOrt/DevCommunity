@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import { UserEntity } from 'src/modules/users/entities/users.entity';
-import { Post } from 'src/modules/post/entities/post.entity';
+import { PostEntity } from 'src/modules/post/entities/post.entity';
 
 @Entity('Comments')
 export class CommentsEntity {
@@ -27,9 +27,9 @@ export class CommentsEntity {
   @JoinColumn({ name: 'authorId' })
   author: UserEntity;
 
-  @ManyToOne(() => Post, (post) => post.comments, {
+  @ManyToOne(() => PostEntity, (post) => post.comments, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'postId' })
-  post: Post;
+  post: PostEntity;
 }
