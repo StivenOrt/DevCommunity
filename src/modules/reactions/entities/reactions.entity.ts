@@ -28,11 +28,15 @@ export class ReactionEntity {
   @Column()
   postId: number;
 
-  @ManyToOne(() => UserEntity, (user) => user.reactions)
+  @ManyToOne(() => UserEntity, (user) => user.reactions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
 
-  @ManyToOne(() => PostEntity, (post) => post.reactions)
+  @ManyToOne(() => PostEntity, (post) => post.reactions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'postId' })
   post: PostEntity;
 }
