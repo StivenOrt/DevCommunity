@@ -10,17 +10,23 @@ import {
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { Post } from 'src/modules/post/entities/post.entity';
 
-@Entity('Reactions')
-@Unique('unique_user_post_reaction', ['author', 'post']) // Un Solo Like por Autor y Post
-export class ReactionEntity {
+@Entity('reactions')
+@Unique(['authorId', 'postId'])
+export class Reaction {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  authorId: number;
 
   @ManyToOne(() => UserEntity, (user) => user.reactions, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'authorId' })
   author: UserEntity;
+
+  @Column()
+  postId: number;
 
   @ManyToOne(() => Post, (post) => post.reactions, {
     onDelete: 'CASCADE',
