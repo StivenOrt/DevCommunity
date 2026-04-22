@@ -12,3 +12,13 @@ export const POST_ERRORS = {
         }
     )
 }
+
+export const JWT_ERRORS = {
+    UNAUTHORIZED: () => (
+        {
+            statusCode: 401,
+            message: 'Credenciales inválidas, por favor, inicia sesión',
+            error: 'Unauthorized',
+        }
+    )
+}

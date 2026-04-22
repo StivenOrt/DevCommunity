@@ -29,7 +29,7 @@ export class PostController {
   }
 
   @ApiOperation({ summary: 'Obtiene una publicación por su id' })
-  @ApiResponse({ status: 200, description: 'Devuelve la lista de todas las publicaciones activas' })
+  @ApiResponse({ status: 200, description: 'Devuelve la publicación activa' })
   @ApiResponse({ status: 404, description: 'Retorna un mensaje de error debido a no existis esa publicacion' })
   @Get(':id')
   async getPostById(@Param('id', ParseIntPipe) id: number): Promise<PostEntity> {
