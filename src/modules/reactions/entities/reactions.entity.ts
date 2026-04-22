@@ -9,10 +9,11 @@ import {
 
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { Post } from 'src/modules/post/entities/post.entity';
+import { Column } from 'typeorm';
 
 @Entity('reactions')
 @Unique(['authorId', 'postId'])
-export class Reaction {
+export class ReactionEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
