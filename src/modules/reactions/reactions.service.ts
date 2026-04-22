@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 
 import { ReactionEntity } from './entities/reactions.entity';
 import { CreateReactionDto } from './dto/create-reaction.dto';
-import { Post } from '../post/entities/post.entity';
+import { PostEntity } from '../post/entities/post.entity';
 
 @Injectable()
 export class ReactionsService {
@@ -17,8 +17,8 @@ export class ReactionsService {
     @InjectRepository(ReactionEntity)
     private reactionRepository: Repository<ReactionEntity>,
 
-    @InjectRepository(Post)
-    private postRepository: Repository<Post>,
+    @InjectRepository(PostEntity)
+    private postRepository: Repository<PostEntity>,
   ) {}
 
   async addReaction(user: any, dto: CreateReactionDto) {
