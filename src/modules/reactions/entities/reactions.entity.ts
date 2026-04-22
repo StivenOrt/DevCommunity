@@ -3,13 +3,17 @@ import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { PostEntity } from 'src/modules/post/entities/post.entity';
 
 @Entity('reactions')
-@Unique(['userId', 'postId'])
+@Unique(['authorId', 'postId'])
 export class Reaction {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  userId: number;
+  authorId: number;
+
+  @ManyToOne(() => UserEntity, (user) => user.reactions)
+  @JoinColumn({ name: 'authorId' })
+  author: UserEntity;
 
   @Column()
   postId: number;

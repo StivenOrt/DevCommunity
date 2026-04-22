@@ -18,7 +18,7 @@ export class AuthService {
       username: dto.username,
       email: dto.email,
       password: hashed,
-      roleId: dto.roleId || "3",
+      roleId: dto.roleId ? Number(dto.roleId) : 3,
     });
 
     return {
@@ -44,6 +44,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         role: user.role?.name,
+        idRol: user.roleId,
       },
     };
   }
