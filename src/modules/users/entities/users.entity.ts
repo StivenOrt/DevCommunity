@@ -22,7 +22,7 @@ export class UserEntity {
     password: string;
 
     @Column()
-    roleId: number
+    roleId: string;
 
     @ManyToOne(() => RolsEntity, role => role.users)
     @JoinColumn({ name: 'roleId' })
