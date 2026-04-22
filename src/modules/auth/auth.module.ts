@@ -20,7 +20,7 @@ import { RolsGuard } from './guards/rols.guard';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '8h' },
+        signOptions: { expiresIn: (config.get<string>('JWT_EXPIRES_IN') ?? '8h') as any },
       }),
     }),
     TypeOrmModule.forFeature([RolsEntity]),
