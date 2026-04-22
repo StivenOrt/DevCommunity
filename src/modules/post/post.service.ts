@@ -4,6 +4,9 @@ import { PostEntity } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
 import { RolsEnum } from 'src/common/enums/rols.enums';
+import { ensureExists } from 'src/common/utils/assertion.util';
+import { POST_ERRORS } from 'src/common/constants/error-messages';
+import { CrudEnums } from 'src/common/enums/crud.enums';
 
 @Injectable()
 export class PostService {
@@ -19,23 +22,27 @@ export class PostService {
     }
 
     async getAllPosts(): Promise<PostEntity[]> {
-        return this.postRepository.find();
+        return ensureExists(
+            await this.postRepository.find(),
+            new NotFoundException( POST_ERRORS.NOT_FOUND() )
+        )
     }
 
     async getPostById(id: number): Promise<PostEntity> {
+        return ensureExists(
+            await this.postRepository.findOneBy({ id }),
+            new NotFoundException( POST_ERRORS.NOT_FOUND() )
+        )
 
-        const post = await this.postRepository.findOneBy({ id });
-
-        if (!post) throw new NotFoundException(`Post with ID ${id} not found`);
-        
-        return post;
     }
 
     async updatePost(id: number, updatePostDto: CreatePostDto, user: any): Promise<PostEntity> {
-        const post = await this.getPostById(id);
-        if (!post) throw new NotFoundException();
+        const post = ensureExists(
+            await this.getPostById(id),
+            new NotFoundException( POST_ERRORS.NOT_FOUND() )
+        )
 
-        if (post.authorId !== user.id) throw new ForbiddenException('No tienes permiso para editar este POST');
+        if (post.authorId !== user.id) throw new ForbiddenException( POST_ERRORS.FORBIDDEN(CrudEnums.UPDATE) );
 
         Object.assign(post, updatePostDto);
 
@@ -44,13 +51,15 @@ export class PostService {
 
     async deletePost(id: number, user: any): Promise<void> {
 
-        const post = await this.getPostById(id);
-        if (!post) throw new NotFoundException();
+        const post = ensureExists(
+            await this.getPostById(id),
+            new NotFoundException()
+        )
 
         const isOwner = post.authorId === user.id;
         const hasPrivileges = [RolsEnum.ADMIN, RolsEnum.MODERATOR].some(role => user.roles.include(role));
 
-        if (!isOwner && !hasPrivileges) throw new ForbiddenException('No tienes permiso para eliminar este POST');
+        if (!isOwner && !hasPrivileges) throw new ForbiddenException( POST_ERRORS.FORBIDDEN(CrudEnums.DELETE) );
         
         await this.postRepository.remove(post);
     }
