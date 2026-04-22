@@ -1,29 +1,35 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  JoinColumn,
+} from 'typeorm';
+
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { PostEntity } from 'src/modules/post/entities/post.entity';
 
-@Entity('comments')
-export class Comment {
+@Entity('Comments')
+export class CommentsEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
-  authorId: number;
-
-  @Column()
-  postId: number;
-
-  @ManyToOne(() => UserEntity, (user) => user.comments)
+  @ManyToOne(() => UserEntity, (user) => user.comments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'authorId' })
   author: UserEntity;
 
-  @ManyToOne(() => PostEntity, (post) => post.comments)
+  @ManyToOne(() => PostEntity, (post) => post.comments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'postId' })
   post: PostEntity;
 }
