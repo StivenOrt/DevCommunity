@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { UserEntity } from 'src/modules/users/entities/users.entity';
-import { Comment } from 'src/modules/comments/entities/comments.entity';
+import { CommentsEntity } from 'src/modules/comments/entities/comments.entity';
 import { ReactionEntity } from 'src/modules/reactions/entities/reactions.entity';
 
 @Entity('posts')
@@ -24,8 +24,8 @@ export class Post {
   @JoinColumn({ name: 'authorId' })
   author: UserEntity;
 
-  @OneToMany(() => Comment, (comment) => comment.post)
-  comments: Comment[];
+  @OneToMany(() => CommentsEntity, (comment) => comment.post)
+  comments: CommentsEntity[];
 
   @OneToMany(() => ReactionEntity, (reaction) => reaction.post, {
     cascade: true,

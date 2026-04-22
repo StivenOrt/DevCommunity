@@ -10,8 +10,8 @@ import {
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { Post } from 'src/modules/post/entities/post.entity';
 
-@Entity('CommentsEntity')
-export class Comment {
+@Entity('Comments')
+export class CommentsEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

@@ -2,7 +2,7 @@ import { Exclude } from "class-transformer";
 import { RolsEntity } from "../../rols/entities/rols.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Post } from "src/modules/post/entities/post.entity";
-import { Comment } from "src/modules/comments/entities/comments.entity";
+import { CommentsEntity } from "src/modules/comments/entities/comments.entity";
 import { ReactionEntity} from "src/modules/reactions/entities/reactions.entity";
 
 
@@ -31,8 +31,8 @@ export class UserEntity {
     @OneToMany(() => Post, (post) => post.author)
     posts: Post[];
 
-    @OneToMany(() => Comment, (comment) => comment.author)
-    comments: Comment[];
+    @OneToMany(() => CommentsEntity, (comment) => comment.author)
+    comments: CommentsEntity[];
 
     @OneToMany(() => ReactionEntity, (reaction) => reaction.author)
     reactions: ReactionEntity[];

@@ -5,15 +5,15 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'; // ← agregado
 import { Repository } from 'typeorm';
-import { Comment } from './entities/comments.entity';
+import { CommentsEntity } from './entities/comments.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @Injectable()
 export class CommentsService {
   constructor(
-    @InjectRepository(Comment)
-    private commentRepository: Repository<Comment>,
+    @InjectRepository(CommentsEntity)
+    private commentRepository: Repository<CommentsEntity>,
   ) {}
 
   async create(user: any, dto: CreateCommentDto) {

@@ -9,30 +9,32 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // ← cambiado
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
+import { RolsGuard } from '../auth/guards/rols.guard';
+import { Rols } from '../auth/decorators/rols.decorator';
 
-@ApiBearerAuth() // provisional
+@UseGuards(JwtAuthGuard, RolsGuard)
+@ApiTags('comments')
+@ApiBearerAuth() 
 @Controller('comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
-  @UseGuards(JwtAuthGuard) 
   @Post()
   create(@GetUser() user, @Body() dto: CreateCommentDto) {
     return this.commentsService.create(user, dto);
   }
-
+ 
   @Get('post/:postId')
   findByPost(@Param('postId', ParseIntPipe) postId: number) {
     return this.commentsService.findByPost(postId);
   }
-
-  @UseGuards(JwtAuthGuard) // ← cambiado
+  @Rols('1')
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -42,7 +44,7 @@ export class CommentsController {
     return this.commentsService.update(user, id, dto);
   }
 
-  @UseGuards(JwtAuthGuard) // ← cambiado
+  @Rols('1')
   @Delete(':id')
   remove(
     @Param('id', ParseIntPipe) id: number,
