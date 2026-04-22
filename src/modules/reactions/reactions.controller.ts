@@ -14,7 +14,9 @@ import { GetUser } from '../auth/decorators/get-user.decorator';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RolsGuard } from '../auth/guards/rols.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Rols } from '../auth/decorators/rols.decorator';
+import { AutorGuard } from '../auth/guards/author.guard';
+import { Autor } from '../auth/decorators/authors.decorator';
+import { ReactionEntity } from './entities/reactions.entity';
 
 @UseGuards(JwtAuthGuard, RolsGuard)
 @ApiBearerAuth()
@@ -27,7 +29,8 @@ export class ReactionsController {
     return this.reactionsService.addReaction(user, dto);
   }
 
-  @Rols('1')
+  @UseGuards(AutorGuard)
+  @Autor(ReactionEntity)
   @Delete(':postId')
   removeReaction(
     @GetUser() user,
@@ -41,7 +44,8 @@ export class ReactionsController {
     return this.reactionsService.getAllReactions();
   }
 
-  @Rols('1')
+  @UseGuards(AutorGuard)
+  @Autor(ReactionEntity)
   @Get('count/:postId')
   count(@Param('postId', ParseIntPipe) postId: number) {
     return this.reactionsService.countReactions(postId);

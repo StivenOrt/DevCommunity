@@ -16,7 +16,9 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { RolsGuard } from '../auth/guards/rols.guard';
-import { Rols } from '../auth/decorators/rols.decorator';
+import { AutorGuard } from '../auth/guards/author.guard';
+import { Autor } from '../auth/decorators/authors.decorator';
+import { CommentsEntity } from './entities/comments.entity';
 
 @UseGuards(JwtAuthGuard, RolsGuard)
 @ApiTags('comments')
@@ -30,11 +32,15 @@ export class CommentsController {
     return this.commentsService.create(user, dto);
   }
  
+  @UseGuards(AutorGuard)
+  @Autor(CommentsEntity)
   @Get('post/:postId')
   findByPost(@Param('postId', ParseIntPipe) postId: number) {
     return this.commentsService.findByPost(postId);
   }
-  @Rols('1')
+
+  @UseGuards(AutorGuard)
+  @Autor(CommentsEntity)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -44,7 +50,8 @@ export class CommentsController {
     return this.commentsService.update(user, id, dto);
   }
 
-  @Rols('1')
+  @UseGuards(AutorGuard)
+  @Autor(CommentsEntity)
   @Delete(':id')
   remove(
     @Param('id', ParseIntPipe) id: number,
