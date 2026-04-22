@@ -21,7 +21,7 @@ export class UserEntity {
     password: string;
 
     @Column()
-    roleId: string;
+    roleId: number;
 
     @ManyToOne(() => RolsEntity, role => role.users)
     @JoinColumn({ name: 'roleId' })
@@ -33,6 +33,6 @@ export class UserEntity {
     @OneToMany(() => Comment, (comment) => comment.author)
     comments: Comment[];
 
-    @OneToMany(() => Reaction, (reaction) => reaction.user)
+    @OneToMany(() => Reaction, (reaction) => reaction.author)
     reactions: Reaction[];
 }
