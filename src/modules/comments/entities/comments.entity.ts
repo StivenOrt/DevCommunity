@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { UserEntity } from 'src/modules/users/entities/users.entity';
-import { Post } from 'src/modules/post/entities/post.entity';
+import { PostEntity } from 'src/modules/post/entities/post.entity';
 
 @Entity('comments')
 export class Comment {
@@ -23,7 +23,7 @@ export class Comment {
   @JoinColumn({ name: 'authorId' })
   author: UserEntity;
 
-  @ManyToOne(() => Post, (post) => post.comments)
+  @ManyToOne(() => PostEntity, (post) => post.comments)
   @JoinColumn({ name: 'postId' })
-  post: Post;
+  post: PostEntity;
 }
