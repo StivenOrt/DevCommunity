@@ -32,7 +32,7 @@ export class ReactionsService {
 
     const existing = await this.reactionRepository.findOne({
       where: {
-        user: { id: user.id },
+        author: { id: user.id },
         post: { id: dto.postId },
       },
     });
@@ -42,7 +42,7 @@ export class ReactionsService {
     }
 
     const reaction = this.reactionRepository.create({
-      user: { id: user.id },
+      author: { id: user.id },
       post: { id: dto.postId },
     });
 
@@ -57,7 +57,7 @@ export class ReactionsService {
   async removeReaction(user: any, postId: number) {
     const reaction = await this.reactionRepository.findOne({
       where: {
-        user: { id: user.id },
+        author: { id: user.id },
         post: { id: postId },
       },
     });

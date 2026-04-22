@@ -17,12 +17,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Rols } from '../auth/decorators/rols.decorator';
 
 @UseGuards(JwtAuthGuard, RolsGuard)
-@ApiBearerAuth() // 🔥 IMPORTANTE
+@ApiBearerAuth()
 @ApiTags('reactions')
 @Controller('reactions')
 export class ReactionsController {
   constructor(private readonly reactionsService: ReactionsService) {}
-
   @Post()
   addReaction(@GetUser() user, @Body() dto: CreateReactionDto) { 
     return this.reactionsService.addReaction(user, dto);
@@ -36,7 +35,6 @@ export class ReactionsController {
   ) {
     return this.reactionsService.removeReaction(user, postId);
   }
-
 
   @Get()
   getAllReactions() {

@@ -34,6 +34,6 @@ export class UserEntity {
     @OneToMany(() => Comment, (comment) => comment.author)
     comments: Comment[];
 
-    @OneToMany(() => ReactionEntity, (reaction) => reaction.user)
+    @OneToMany(() => ReactionEntity, (reaction) => reaction.author)
     reactions: ReactionEntity[];
 }
