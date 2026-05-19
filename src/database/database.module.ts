@@ -1,8 +1,7 @@
-import { Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-@Global()
 @Module({
     imports: [
         TypeOrmModule.forRootAsync({
@@ -16,8 +15,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
                 password: configService.get<string>('DB_PASSWORD'),
                 database: configService.get<string>('DB_DATABASE'),
                 autoLoadEntities: true,
-                synchronize: false,
-                logging: true
+                synchronize: true,
+                logging: false,
             })
         })
     ],

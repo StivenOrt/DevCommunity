@@ -1,35 +1,74 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserEntity } from "./entities/users.entity";
 import { Repository } from "typeorm";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { RoleService } from "../roles/roles.service";
+import { hash } from "bcrypt";
+
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+
+    private readonly roleRepository: RoleService
   ) {}
 
   async findAll(): Promise<UserEntity[]> {
-    return this.userRepository.find({ relations: ['role'] });
-  }
-
-  async findByEmail(email: string): Promise<UserEntity | null> {
-    return this.userRepository.findOne({
-      where: { email },
-      relations: ['role'],
+    return this.userRepository.find({
+      relations: { role: true }
     });
   }
 
-  async findById(id: number): Promise<UserEntity | null> {
-    return this.userRepository.findOne({
-      where: { id },
-      relations: ['role'],
-    });
+  findOneBy = {
+
+    uuid: async(uuid: string): Promise<UserEntity> => {
+
+      const user = await this.userRepository.findOne({
+        where: { uuid },
+        relations: { role: true }
+      })
+      if (!user) throw new NotFoundException('No existe ese usuario')
+      return user;
+    },
+
+    id: async(id: number): Promise<UserEntity> => {
+
+      const user = await this.userRepository.findOne({
+        where: { id },
+        relations: { role: true }
+      });
+      if (!user) throw new NotFoundException('No existe ese usuario')
+      return user;
+    },
+
+    email: async(email: string): Promise<UserEntity> => {
+
+      const user = await this.userRepository.findOne({
+        where: { email },
+        relations: { role: true }
+      });
+      if (!user) throw new NotFoundException('No existe ese usuario')
+      return user
+    }
+
   }
 
-  async create(data: Partial<UserEntity>): Promise<UserEntity> {
-    const user = this.userRepository.create(data);
+
+  async create(createUserDto: CreateUserDto) {
+
+    const { roleName, password, ...newData } = createUserDto;
+
+    const newRoleData: Partial<UserEntity> = { ...newData }
+
+    if (roleName) newRoleData.role = await this.roleRepository.findOneBy.name(roleName)
+
+    newRoleData.passwordHash = await hash(password, 10);
+
+    const user = this.userRepository.create(newRoleData);
+    
     return this.userRepository.save(user);
   }
 }
