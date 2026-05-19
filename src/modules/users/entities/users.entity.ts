@@ -1,5 +1,5 @@
 import { Exclude } from "class-transformer";
-import { RolsEntity } from "../../rols/entities/rols.entity";
+import { RolesEntity } from "../../rols/entities/roles.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { PostEntity } from "src/modules/post/entities/post.entity";
 import { CommentsEntity } from "src/modules/comments/entities/comments.entity";
@@ -23,9 +23,9 @@ export class UserEntity {
     @Column()
     roleId: number;
 
-    @ManyToOne(() => RolsEntity, role => role.users)
+    @ManyToOne(() => RolesEntity, role => role.users)
     @JoinColumn({ name: 'roleId' })
-    role: RolsEntity;
+    role: RolesEntity;
 
     @OneToMany(() => PostEntity, (post) => post.author)
     posts: PostEntity[];

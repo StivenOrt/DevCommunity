@@ -5,7 +5,7 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RolsEntity } from '../rols/entities/rols.entity';
+import { RolesEntity } from '../rols/entities/roles.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -24,7 +24,7 @@ import { AutorGuard } from './guards/author.guard';
         signOptions: { expiresIn: (config.get<string>('JWT_EXPIRES_IN') ?? '8h') as any },
       }),
     }),
-    TypeOrmModule.forFeature([RolsEntity]),
+    TypeOrmModule.forFeature([RolesEntity]),
     UsersModule,
   ],
   controllers: [AuthController],
