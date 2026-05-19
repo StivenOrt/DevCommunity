@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { RolesEntity } from './entities/roles.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RolsSeedService } from './rolsSeed.service';
+import { RolsSeedService } from 'src/seeders/roles-seeder.service';
+
 
 @Module({
   imports: [TypeOrmModule.forFeature([RolesEntity])],
@@ -9,4 +10,4 @@ import { RolsSeedService } from './rolsSeed.service';
   exports: [TypeOrmModule],
 
 })
-export class RolModule { }
+export class RoleModule { }

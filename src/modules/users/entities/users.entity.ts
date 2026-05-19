@@ -1,5 +1,5 @@
 import { Exclude } from "class-transformer";
-import { RolesEntity } from "../../rols/entities/roles.entity";
+import { RolesEntity } from "../../roles/entities/roles.entity";
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { PostEntity } from "src/modules/post/entities/post.entity";
 import { CommentsEntity } from "src/modules/comments/entities/comments.entity";
