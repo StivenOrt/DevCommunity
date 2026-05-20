@@ -7,7 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RolesEntity } from '../roles/entities/roles.entity';
 import { VerificationEntity } from './entities/verification.entity';
-import { MailService } from './mail.service';
+import { MailModule } from '../../Mail/mail.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -28,9 +28,10 @@ import { AutorGuard } from './guards/author.guard';
     }),
     TypeOrmModule.forFeature([RolesEntity, VerificationEntity]),
     UsersModule,
+    MailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolsGuard, AutorGuard, MailService],
-  exports: [JwtAuthGuard, RolsGuard, AutorGuard, MailService],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolsGuard, AutorGuard],
+  exports: [JwtAuthGuard, RolsGuard, AutorGuard],
 })
 export class AuthModule {}

@@ -6,7 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VerificationEntity } from './entities/verification.entity';
-import { MailService } from './mail.service';
+import { MailService } from '../../Mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
@@ -69,7 +69,7 @@ export class AuthService {
     await this.verificationRepository.save(verification);
 
     try {
-      await this.mailService.sendVerificationEmail(user.email, code);
+      await this.mailService.sendLoginVerificationEmail(user.email, code, user.username);
     } catch (err) {
       await this.verificationRepository.delete({ id: verification.id });
       throw err;
@@ -149,7 +149,7 @@ export class AuthService {
 
     await this.verificationRepository.save(verification);
     try {
-      await this.mailService.sendVerificationEmail(user.email, code);
+      await this.mailService.sendPasswordResetEmail(user.email, code, user.username);
     } catch (err) {
       await this.verificationRepository.delete({ id: verification.id });
       throw err;

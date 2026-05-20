@@ -7,6 +7,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PostModule } from './modules/post/post.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ReactionsModule } from './modules/reactions/reactions.module';
+import { MailModule } from './Mail/mail.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ReactionsModule } from './modules/reactions/reactions.module';
     PostModule,
     CommentsModule,
     ReactionsModule,
+    MailModule,
   ],
   controllers: [],
   providers: [],
