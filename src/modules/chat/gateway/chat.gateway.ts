@@ -11,6 +11,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     server: Server;
 
     handleConnection(client: Socket) {
+
+        const token = client.handshake?.headers?.authorization
+
+        console.log(token)
+
         console.log(`Nueva conexion: ${client.id}`)
     }
 
@@ -18,9 +23,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         console.log(`Conexion finalizada: ${client.id}`)
     }
 
-    @SubscribeMessage('message.update')
+    // sendMessage es evento de USER > SERVER
+    @SubscribeMessage('sendMessage')
     handleMessage(@ConnectedSocket() client: Socket, @MessageBody() message: string) {
         console.log(`${client.id} ha enviado el mensaje: ${message}`)
+
+        // message.update es evento de SERVER > USER
+        this.server.emit('message.update', message)
     }
 
 
