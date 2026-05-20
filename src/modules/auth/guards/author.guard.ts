@@ -25,17 +25,20 @@ export class AutorGuard implements CanActivate {
 
     if (['1', '2'].includes(user.idRol.toString())) return true;
 
-    const id = Number(request.params.id);
+
+    const uuid =request.params.uuid;
     const repository = this.dataSource.getRepository(entidad as any);
 
     const recurso = await repository.findOne({
-        where: { id },
+        where: { uuid },
         relations: ['author'],
     });
 
     if (!recurso) throw new NotFoundException('Recurso no encontrado');
 
-    if (recurso.author.id !== user.id) {
+    console.log(recurso)
+    console.log(user)
+    if (recurso.author.uuid !== user.uuid) {
         throw new ForbiddenException('No tienes permiso para modificar este recurso');
     }
 

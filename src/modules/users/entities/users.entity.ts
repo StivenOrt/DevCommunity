@@ -5,6 +5,8 @@ import { PostEntity } from "src/modules/post/entities/post.entity";
 import { CommentsEntity } from "src/modules/comments/entities/comments.entity";
 import { ReactionEntity } from "src/modules/reactions/entities/reactions.entity";
 import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
+import { FriendshipEntity } from "src/modules/friends/entities/friendship.entity";
+import { ChatEntity } from "src/modules/chat/entities/chat.entity";
 
 @Entity('users')
 export class UserEntity {
@@ -40,6 +42,12 @@ export class UserEntity {
     @JoinColumn({ name: 'role' })
     role: RolesEntity;
 
+    @OneToMany( () => FriendshipEntity, (friend) => friend.user)
+    sentFriendRequest: FriendshipEntity[];
+
+    @OneToMany( () => FriendshipEntity, (friend) => friend.friend)
+    receivedFriendRequest: FriendshipEntity[];
+
     @OneToMany( () => PostEntity, (post) => post.author )
     posts: PostEntity[];
 
@@ -48,6 +56,12 @@ export class UserEntity {
 
     @OneToMany( () => ReactionEntity, (reaction) => reaction.author )
     reactions: ReactionEntity[];
+
+    @OneToMany( () => ChatEntity, (chat) => chat.sender )
+    sender: ChatEntity[];
+
+    @OneToMany( () => ChatEntity, (chat) => chat.receiver )
+    receiver: ChatEntity[];
 
     @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
     createdAt: Date;
