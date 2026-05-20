@@ -38,6 +38,7 @@ export class AutorGuard implements CanActivate {
 
     console.log(recurso)
     console.log(user)
+    
     if (recurso.author.uuid !== user.uuid) {
         throw new ForbiddenException('No tienes permiso para modificar este recurso');
     }

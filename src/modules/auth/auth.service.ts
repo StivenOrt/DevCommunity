@@ -116,11 +116,11 @@ export class AuthService {
     verification.used = true;
     await this.verificationRepository.save(verification);
 
-    const payload = { sub: user.id, email: user.email, idRol: user.role.id };
-    const token = this.jwtService.sign(payload);
+    const payload = { sub: user.uuid, email: user.email, idRol: user.role.id };
+    const access_token = this.jwtService.sign(payload);
 
     return {
-      access_token: token,
+      access_token,
       user: {
         username: user.username,
         email: user.email,
