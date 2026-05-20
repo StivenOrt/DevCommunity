@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { ApiProperty } from '@nestjs/swagger';
-import { RolesEnum } from "src/common/enums/rols.enums";
+import { RolesEnum } from "src/common/enums/roles.enums";
 
 export class CreateUserDto {
 
@@ -23,7 +23,9 @@ export class CreateUserDto {
     @MaxLength(32, { message: "La contraseña debe tener menos de 32 caracteres" })
     password: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        example: 'admin|moderator|user'
+    })
     @IsString()
     @IsOptional()
     roleName: RolesEnum;

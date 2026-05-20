@@ -1,6 +1,6 @@
 import { Exclude } from "class-transformer";
 import { RolesEntity } from "../../roles/entities/roles.entity";
-import { Column, Entity, Generated, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, Generated, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { PostEntity } from "src/modules/post/entities/post.entity";
 import { CommentsEntity } from "src/modules/comments/entities/comments.entity";
 import { ReactionEntity } from "src/modules/reactions/entities/reactions.entity";
@@ -48,4 +48,13 @@ export class UserEntity {
 
     @OneToMany( () => ReactionEntity, (reaction) => reaction.author )
     reactions: ReactionEntity[];
+
+    @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+    createdAt: Date;
+
+    @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+    updatedAt: Date;
+
+    @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
+    deletedAt: Date;
 }

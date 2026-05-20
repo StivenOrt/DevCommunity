@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { RoleService } from "../roles/roles.service";
 import { hash } from "bcrypt";
+import { RolesEnum } from "src/common/enums/roles.enums";
 
 
 @Injectable()
@@ -64,6 +65,7 @@ export class UsersService {
     const newRoleData: Partial<UserEntity> = { ...newData }
 
     if (roleName) newRoleData.role = await this.roleRepository.findOneBy.name(roleName)
+    else newRoleData.role = await this.roleRepository.findOneBy.name(RolesEnum.USER)
 
     newRoleData.passwordHash = await hash(password, 10);
 

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RolesEntity } from './entities/roles.entity';
 import { Not, Repository } from 'typeorm';
-import { RolesEnum } from 'src/common/enums/rols.enums';
+import { RolesEnum } from 'src/common/enums/roles.enums';
 
 
 @Injectable()
@@ -18,6 +18,13 @@ export class RoleService {
   }
 
   findOneBy = {
+
+    id: async (id: number) => {
+      const role = await this.RoleRepository.findOneBy({ id })
+
+      if (!role) throw new NotFoundException( 'No existe ese ROL' )
+      return role
+    },
 
     uuid: async (uuid: string) => {
       const role = await this.RoleRepository.findOneBy({ uuid })
