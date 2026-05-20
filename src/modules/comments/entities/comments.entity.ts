@@ -5,31 +5,37 @@ import {
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
+  Generated,
 } from 'typeorm';
 
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { PostEntity } from 'src/modules/post/entities/post.entity';
 
-@Entity('Comments')
+@Entity('comments')
 export class CommentsEntity {
+
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'uuid' })
+  @Generated('uuid')
+  uuid: string;
+  
+  @Column({ type: 'varchar' })
   content: string;
-
-  @CreateDateColumn()
-  createdAt: Date;
 
   @ManyToOne(() => UserEntity, (user) => user.comments, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'authorId' })
+  @JoinColumn()
   author: UserEntity;
 
   @ManyToOne(() => PostEntity, (post) => post.comments, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'postId' })
+  @JoinColumn()
   post: PostEntity;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 }

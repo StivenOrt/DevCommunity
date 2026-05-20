@@ -1,12 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, Generated } from 'typeorm';
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { CommentsEntity } from 'src/modules/comments/entities/comments.entity';
 import { ReactionEntity } from 'src/modules/reactions/entities/reactions.entity';
 
 @Entity('posts')
 export class PostEntity {
+
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'uuid' })
+  @Generated('uuid')
+  uuid: string;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;
