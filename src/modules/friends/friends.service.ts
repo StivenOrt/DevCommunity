@@ -3,6 +3,7 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,23 +12,17 @@ import { CreateFriendRequestDto } from './dto/create-friend-request.dto';
 import { UpdateFriendStatusDto } from './dto/update-friend-status.dto';
 import { FriendshipStatus } from 'src/common/enums/friend.enum';
 import { UserEntity } from '../users/entities/users.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class FriendsService {
   constructor(
     @InjectRepository(FriendshipEntity)
     private readonly friendshipRepository: Repository<FriendshipEntity>,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    
+    private readonly userRepository: UsersService
   ) {}
 
-  // ─── Helper: buscar usuario por uuid ──────────────────────────────────────
-
-  private async findUserByUuid(uuid: string): Promise<UserEntity> {
-    const user = await this.userRepository.findOne({ where: { uuid } });
-    if (!user) throw new NotFoundException(`Usuario con uuid ${uuid} no encontrado.`);
-    return user;
-  }
 
   // ─── Helpers para ChatModule ───────────────────────────────────────────────
 
@@ -54,41 +49,33 @@ export class FriendsService {
 
   // ─── 1. Enviar solicitud ───────────────────────────────────────────────────
 
-  async sendFriendRequest(
-    currentUser: UserEntity,
-    dto: CreateFriendRequestDto,
-  ): Promise<{ message: string }> {
-    if (currentUser.uuid === dto.friendUuid) {
-      throw new BadRequestException('No puedes enviarte una solicitud de amistad a ti mismo.');
-    }
+  async sendFriendRequest( currentUser: UserEntity, dto: CreateFriendRequestDto ): Promise<{ message: string }> {
 
-    // Resolver el usuario destino para obtener su ID numérico
-    const friendUser = await this.findUserByUuid(dto.friendUuid);
+    const { friendUuid } = dto;
+
+    const newFriendshipData: Partial<FriendshipEntity> = {}
+
+
+    if (currentUser.uuid === friendUuid) throw new BadRequestException('No puedes enviarte una solicitud de amistad a ti mismo.');
+    
+    const friendUser = await this.userRepository.findOneBy.uuid(friendUuid);
+    const user = await this.userRepository.findOneBy.uuid(currentUser.uuid)
 
     const existing = await this.friendshipRepository.findOne({
       where: [
-        { user: { id: currentUser.id }, friend: { id: friendUser.id } },
-        { user: { id: friendUser.id }, friend: { id: currentUser.id } },
+        { user: { uuid: currentUser.uuid }, friend: { uuid: friendUser.uuid } },
+        { user: { uuid: friendUser.uuid }, friend: { uuid: currentUser.uuid } },
       ],
     });
 
-    if (existing) {
-      throw new BadRequestException(
-        'Ya existe una solicitud o relación de amistad entre estos usuarios.',
-      );
-    }
+    if (existing) throw new BadRequestException( 'Ya existe una solicitud o relación de amistad entre estos usuarios' );
 
-    // Insertar con IDs numéricos directamente — TypeORM los mapea correctamente a las FKs
-    await this.friendshipRepository
-      .createQueryBuilder()
-      .insert()
-      .into(FriendshipEntity)
-      .values({
-        user: { id: currentUser.id } as UserEntity,
-        friend: { id: friendUser.id } as UserEntity,
-        status: FriendshipStatus.PENDING,
-      })
-      .execute();
+    newFriendshipData.user = user;
+    newFriendshipData.friend = friendUser
+
+    const newFriendship = this.friendshipRepository.create(newFriendshipData)
+
+    await this.friendshipRepository.save(newFriendship)
 
     return { message: 'Solicitud de amistad enviada correctamente.' };
   }
@@ -128,59 +115,73 @@ export class FriendsService {
 
   // ─── 3. Bloquear ──────────────────────────────────────────────────────────
 
-  async blockUser(
-    currentUser: UserEntity,
-    targetUuid: string,
-  ): Promise<{ message: string }> {
-    if (currentUser.uuid === targetUuid) {
-      throw new BadRequestException('No puedes bloquearte a ti mismo.');
-    }
+  async blockUser( currentUser: UserEntity, targetUuid: string ) {
 
-    const targetUser = await this.findUserByUuid(targetUuid);
+    if (currentUser.uuid === targetUuid) throw new BadRequestException('No puedes bloquearte a ti mismo');
 
-    const existing = await this.friendshipRepository.findOne({
+    const targetUser: UserEntity = await this.userRepository.findOneBy.uuid(targetUuid);
+    const user: UserEntity = await this.userRepository.findOneBy.uuid(currentUser.uuid);
+
+    const friendShip = await this.friendshipRepository.findOne({
       where: [
-        { user: { id: currentUser.id }, friend: { id: targetUser.id } },
-        { user: { id: targetUser.id }, friend: { id: currentUser.id } },
+        { user: { uuid: user.uuid }, friend: { uuid: targetUser.uuid } },
+        { user: { uuid: targetUser.uuid }, friend: { uuid: user.uuid } },
       ],
     });
 
-    if (existing) {
-      await this.friendshipRepository
-        .createQueryBuilder()
-        .update(FriendshipEntity)
-        .set({ status: FriendshipStatus.BLOCKED })
-        .where('id = :id', { id: existing.id })
-        .execute();
+    let data: FriendshipEntity
+
+    if (friendShip) {
+
+      if (friendShip.status === FriendshipStatus.BLOCKED) throw new ConflictException( 'Ese usuario ya esta bloqueado' )
+      const editFriendship = this.friendshipRepository.merge(friendShip, { status: FriendshipStatus.BLOCKED })
+      data = await this.friendshipRepository.save(editFriendship)
+
     } else {
-      await this.friendshipRepository
-        .createQueryBuilder()
-        .insert()
-        .into(FriendshipEntity)
-        .values({
-          user: { id: currentUser.id } as UserEntity,
-          friend: { id: targetUser.id } as UserEntity,
-          status: FriendshipStatus.BLOCKED,
-        })
-        .execute();
+      const newFriendship = this.friendshipRepository.create({
+        friend: targetUser,
+        user,
+        status: FriendshipStatus.BLOCKED
+      })
+
+      data = await this.friendshipRepository.save(newFriendship)
     }
 
-    return { message: 'Usuario bloqueado correctamente.' };
+    return { 
+      data,
+      message: 'Usuario bloqueado correctamente'
+    };
   }
 
   // ─── 4. Listar amigos aceptados ───────────────────────────────────────────
 
   async getMyFriends(currentUser: UserEntity): Promise<UserEntity[]> {
+
     const friendships = await this.friendshipRepository.find({
       where: [
-        { user: { id: currentUser.id }, status: FriendshipStatus.ACCEPTED },
-        { friend: { id: currentUser.id }, status: FriendshipStatus.ACCEPTED },
+        { user: { uuid: currentUser.uuid }, status: FriendshipStatus.ACCEPTED },
+        { friend: { uuid: currentUser.uuid }, status: FriendshipStatus.ACCEPTED },
       ],
       relations: ['user', 'friend'],
     });
 
     return friendships.map((f) =>
-      f.user.id === currentUser.id ? f.friend : f.user,
+      f.user.uuid === currentUser.uuid ? f.friend : f.user,
+    );
+  }
+
+  async getMyBlocks(currentUser: UserEntity): Promise<UserEntity[]> {
+
+    const friendships = await this.friendshipRepository.find({
+      where: [
+        { user: { uuid: currentUser.uuid }, status: FriendshipStatus.BLOCKED },
+        { friend: { uuid: currentUser.uuid }, status: FriendshipStatus.BLOCKED },
+      ],
+      relations: ['user', 'friend'],
+    });
+
+    return friendships.map((f) =>
+      f.user.uuid === currentUser.uuid ? f.friend : f.user,
     );
   }
 
@@ -198,37 +199,29 @@ export class FriendsService {
 
   // ─── 6. Eliminar amistad / cancelar solicitud ─────────────────────────────
 
-  async removeFriendship(
-    currentUser: UserEntity,
-    requestUuid: string,
-  ): Promise<{ message: string }> {
+  async removeFriendship(currentUser: UserEntity,requestUuid: string ): Promise<{ message: string }> {
+
     const relationship = await this.friendshipRepository.findOne({
       where: [
-        { uuid: requestUuid, user: { id: currentUser.id } },
-        { uuid: requestUuid, friend: { id: currentUser.id } },
+        { uuid: requestUuid, user: { uuid: currentUser.uuid } },
+        { uuid: requestUuid, friend: { uuid: currentUser.uuid } },
       ],
     });
 
-    if (!relationship) {
-      throw new NotFoundException('Relación de amistad no encontrada.');
-    }
+    if (!relationship) throw new NotFoundException('Relación de amistad no encontrada');
 
     if (relationship.status === FriendshipStatus.BLOCKED) {
+
       const isBlocker = await this.friendshipRepository.findOne({
-        where: { uuid: requestUuid, user: { id: currentUser.id } },
+        where: { uuid: requestUuid, user: { uuid: currentUser.uuid } },
       });
-      if (!isBlocker) {
-        throw new ForbiddenException('No tienes permiso para eliminar este bloqueo.');
-      }
+
+      if (!isBlocker) throw new ForbiddenException('No tienes permiso para eliminar este bloqueo');
     }
 
-    await this.friendshipRepository
-      .createQueryBuilder()
-      .delete()
-      .from(FriendshipEntity)
-      .where('id = :id', { id: relationship.id })
-      .execute();
 
-    return { message: 'Relación eliminada correctamente.' };
+    await this.friendshipRepository.remove(relationship)
+
+    return { message: 'Relación eliminada correctamente' };
   }
 }

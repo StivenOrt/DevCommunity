@@ -14,6 +14,7 @@ import {
 
 @Entity('friendship')
 export class FriendshipEntity {
+
   @PrimaryGeneratedColumn()
   @Exclude()
   @ApiHideProperty()
@@ -27,11 +28,11 @@ export class FriendshipEntity {
   status: FriendshipStatus;
 
   @ManyToOne(() => UserEntity, (user) => user.sentFriendRequest, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user' })
   user: UserEntity;
 
   @ManyToOne(() => UserEntity, (user) => user.receivedFriendRequest, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'friendId' })
+  @JoinColumn({ name: 'friend' })
   friend: UserEntity;
 
   @CreateDateColumn({ name: 'created_at' })

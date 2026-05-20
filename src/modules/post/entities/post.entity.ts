@@ -2,10 +2,14 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColum
 import { UserEntity } from 'src/modules/users/entities/users.entity';
 import { CommentsEntity } from 'src/modules/comments/entities/comments.entity';
 import { ReactionEntity } from 'src/modules/reactions/entities/reactions.entity';
+import { ApiHideProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 
 @Entity('posts')
 export class PostEntity {
 
+  @Exclude()
+  @ApiHideProperty()
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -22,11 +26,8 @@ export class PostEntity {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column()
-  authorId: number;
-
   @ManyToOne(() => UserEntity, (user) => user.posts)
-  @JoinColumn({ name: 'authorId' })
+  @JoinColumn({ name: 'author' })
   author: UserEntity;
 
   @OneToMany(() => CommentsEntity, (comment) => comment.post)

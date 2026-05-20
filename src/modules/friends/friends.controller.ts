@@ -21,6 +21,7 @@ import { UpdateFriendStatusDto } from './dto/update-friend-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserEntity } from '../users/entities/users.entity';
+import { FriendshipEntity } from './entities/friendship.entity';
 
 @ApiTags('Friends')
 @ApiBearerAuth()
@@ -70,9 +71,16 @@ export class FriendsController {
   // ── GET /friends ───────────────────────────────────────────────────────────
   @Get()
   @ApiOperation({ summary: 'Obtener lista de amigos del usuario autenticado' })
-  @ApiResponse({ status: 200, description: 'Lista de amigos.' })
+  @ApiResponse({ status: 200, description: 'Lista de amigos' })
   getMyFriends(@GetUser() currentUser: UserEntity) {
     return this.friendsService.getMyFriends(currentUser);
+  }
+
+  @Get('blockeds')
+  @ApiOperation({ summary: 'Obtener lista de bloqueados del usuario autenticado' })
+  @ApiResponse({ status: 200, description: 'Lista de bloqueados' })
+  getMyBlocks(@GetUser() currentUser: UserEntity) {
+    return this.friendsService.getMyBlocks(currentUser);
   }
 
   // ── GET /friends/pending ───────────────────────────────────────────────────
