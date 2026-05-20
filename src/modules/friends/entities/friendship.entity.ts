@@ -28,11 +28,11 @@ export class FriendshipEntity {
   status: FriendshipStatus;
 
   @ManyToOne(() => UserEntity, (user) => user.sentFriendRequest, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user' })
+  @JoinColumn()
   user: UserEntity;
 
   @ManyToOne(() => UserEntity, (user) => user.receivedFriendRequest, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'friend' })
+  @JoinColumn()
   friend: UserEntity;
 
   @CreateDateColumn({ name: 'created_at' })

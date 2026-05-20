@@ -6,16 +6,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './gateway/chat.gateway';
-import { PrivateMessageEntity } from './entities/private-message.entity';
+import { MessageEntity } from './entities/message.entity';
 
 import { UsersModule } from '../users/users.module';
 import { FriendsModule } from '../friends/friends.module';
+import { ChatEntity } from './entities/chat.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PrivateMessageEntity]),
+    TypeOrmModule.forFeature([MessageEntity, ChatEntity]),
 
-    // Para que el Gateway pueda verificar JWT al conectar por WebSocket
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -24,8 +24,8 @@ import { FriendsModule } from '../friends/friends.module';
       }),
     }),
 
-    FriendsModule, // Provee FriendsService para validar amistad y bloqueos
-    UsersModule,   // Provee UsersService para resolver UUIDs
+    FriendsModule,
+    UsersModule,
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatGateway],
