@@ -13,14 +13,7 @@ export class RolesSeedService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        const count = await this.roleRepository.count();
-        if (count === 0) {
-            await this.roleRepository.save([
-                { name: RolesEnum.ADMIN },
-                { name: RolesEnum.MODERATOR },
-                { name: RolesEnum.USER },
-            ]);
-        }
+        await this.seedRoles()
     }
 
     async seedRoles() {

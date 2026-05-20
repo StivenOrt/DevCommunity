@@ -9,6 +9,9 @@
         "watchAssets": true
       }
     ],
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "assets": ["mails/templates/**/*",
+    {"include": "**/*.hbs"}],
+    "watchAssets": true
   }
 }

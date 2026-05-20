@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostEntity } from './entities/post.entity';
@@ -37,9 +37,9 @@ export class PostController {
   @ApiResponse({ status: 404, description: 'Retorna un mensaje de error debido a no existis esa publicacion' })
   @UseGuards(AutorGuard)
   @Autor(PostEntity)
-  @Get(':id')
-  async getPostById(@Param('id', ParseIntPipe) id: number): Promise<PostEntity> {
-    return this.postService.getPostById(id);
+  @Get(':uuid')
+  async getPostById(@Param('uuid') uuid: string): Promise<PostEntity> {
+    return this.postService.getOneBy.uuid(uuid);
   }
 
   @ApiOperation({ summary: 'Actualiza una publicación' })
@@ -48,9 +48,9 @@ export class PostController {
   @ApiResponse({ status: 403, description: 'Se requiere un rol con el permiso requerido para actualizar' })
   @UseGuards(AutorGuard)
   @Autor(PostEntity)
-  @Patch(':id')
-  async updatePost( @Param('id', ParseIntPipe) id: number, @Body() updatePostDto: CreatePostDto ): Promise<PostEntity> {
-    return this.postService.updatePost(id, updatePostDto);
+  @Patch(':uuid')
+  async updatePost( @Param('uuid') uuid: string, @Body() updatePostDto: CreatePostDto ): Promise<PostEntity> {
+    return this.postService.updatePost(uuid, updatePostDto);
   }
 
 @ApiOperation({ summary: 'Elimina una publicación' })

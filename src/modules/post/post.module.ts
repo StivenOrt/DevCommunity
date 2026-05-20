@@ -4,9 +4,14 @@ import { PostEntity } from './entities/post.entity';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { MailModule } from '../../common/Mail/mail.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PostEntity]), MailModule],
+  imports: [
+    TypeOrmModule.forFeature([PostEntity]),
+    UsersModule,
+    MailModule
+  ],
   providers: [PostService],
   controllers: [PostController],
   exports: [TypeOrmModule, PostService],

@@ -15,12 +15,15 @@ export class CommentsService {
   ) {}
 
   async create(user: any, dto: CreateCommentDto) {
+
     const comment = this.commentRepository.create({
       content: dto.content,
       author: { id: user.id },
-      post: { id: dto.postId },
+      post: { uuid: dto.postUuid },
     });
+
     return this.commentRepository.save(comment);
+
   }
 
   async findByPost(postId: number, page: number = 1) {

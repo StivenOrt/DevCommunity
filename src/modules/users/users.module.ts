@@ -4,6 +4,7 @@ import { UserEntity } from './entities/users.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { RoleModule } from '../roles/roles.module';
+import { UserSeederService } from 'src/seeders/user-seeder.service';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { RoleModule } from '../roles/roles.module';
     RoleModule
   ],
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, UserSeederService],
   exports: [UsersService],
 })
 export class UsersModule {}
