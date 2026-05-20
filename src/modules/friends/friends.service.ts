@@ -17,50 +17,58 @@ export class FriendsService {
   constructor(
     @InjectRepository(FriendshipEntity)
     private readonly friendshipRepository: Repository<FriendshipEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
   ) {}
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
+  // ─── Helper: buscar usuario por uuid ──────────────────────────────────────
 
-  /** Verifica si dos usuarios tienen amistad mutua aceptada (para el chat). */
+  private async findUserByUuid(uuid: string): Promise<UserEntity> {
+    const user = await this.userRepository.findOne({ where: { uuid } });
+    if (!user) throw new NotFoundException(`Usuario con uuid ${uuid} no encontrado.`);
+    return user;
+  }
+
+  // ─── Helpers para ChatModule ───────────────────────────────────────────────
+
   async areMutualFriends(userAId: number, userBId: number): Promise<boolean> {
-    const friendship = await this.friendshipRepository.findOne({
+    const count = await this.friendshipRepository.count({
       where: [
         { user: { id: userAId }, friend: { id: userBId }, status: FriendshipStatus.ACCEPTED },
         { user: { id: userBId }, friend: { id: userAId }, status: FriendshipStatus.ACCEPTED },
       ],
     });
-    return !!friendship;
+    return count > 0;
   }
 
-  /** Verifica si el usuario está bloqueado por el otro participante. */
   async isBlocked(senderId: number, receiverId: number): Promise<boolean> {
-    const blocked = await this.friendshipRepository.findOne({
-      where: [
-        { user: { id: receiverId }, friend: { id: senderId }, status: FriendshipStatus.BLOCKED },
-      ],
+    const count = await this.friendshipRepository.count({
+      where: {
+        user: { id: receiverId },
+        friend: { id: senderId },
+        status: FriendshipStatus.BLOCKED,
+      },
     });
-    return !!blocked;
+    return count > 0;
   }
 
-  // ─── Endpoints ────────────────────────────────────────────────────────────
+  // ─── 1. Enviar solicitud ───────────────────────────────────────────────────
 
-  /**
-   * 1. Enviar solicitud de amistad.
-   * El usuario autenticado envía la solicitud; el receptor la verá en PENDING.
-   */
   async sendFriendRequest(
     currentUser: UserEntity,
     dto: CreateFriendRequestDto,
-  ): Promise<FriendshipEntity> {
+  ): Promise<{ message: string }> {
     if (currentUser.uuid === dto.friendUuid) {
       throw new BadRequestException('No puedes enviarte una solicitud de amistad a ti mismo.');
     }
 
-    // Verificar relación existente en ambas direcciones
+    // Resolver el usuario destino para obtener su ID numérico
+    const friendUser = await this.findUserByUuid(dto.friendUuid);
+
     const existing = await this.friendshipRepository.findOne({
       where: [
-        { user: { uuid: currentUser.uuid }, friend: { uuid: dto.friendUuid } },
-        { user: { uuid: dto.friendUuid }, friend: { uuid: currentUser.uuid } },
+        { user: { id: currentUser.id }, friend: { id: friendUser.id } },
+        { user: { id: friendUser.id }, friend: { id: currentUser.id } },
       ],
     });
 
@@ -70,87 +78,98 @@ export class FriendsService {
       );
     }
 
-    const newRequest = this.friendshipRepository.create({
-      user: { uuid: currentUser.uuid } as UserEntity,
-      friend: { uuid: dto.friendUuid } as UserEntity,
-      status: FriendshipStatus.PENDING,
-    });
+    // Insertar con IDs numéricos directamente — TypeORM los mapea correctamente a las FKs
+    await this.friendshipRepository
+      .createQueryBuilder()
+      .insert()
+      .into(FriendshipEntity)
+      .values({
+        user: { id: currentUser.id } as UserEntity,
+        friend: { id: friendUser.id } as UserEntity,
+        status: FriendshipStatus.PENDING,
+      })
+      .execute();
 
-    return this.friendshipRepository.save(newRequest);
+    return { message: 'Solicitud de amistad enviada correctamente.' };
   }
 
-  /**
-   * 2. Responder a una solicitud (solo el receptor puede aceptar/rechazar).
-   */
+  // ─── 2. Aceptar / Rechazar ────────────────────────────────────────────────
+
   async respondToRequest(
     currentUser: UserEntity,
     requestUuid: string,
     dto: UpdateFriendStatusDto,
-  ): Promise<FriendshipEntity> {
+  ): Promise<{ message: string }> {
     const request = await this.friendshipRepository.findOne({
       where: {
         uuid: requestUuid,
         friend: { id: currentUser.id },
+        status: FriendshipStatus.PENDING,
       },
     });
 
     if (!request) {
       throw new NotFoundException(
-        'La solicitud de amistad no existe o no tienes permisos para modificarla.',
+        'La solicitud no existe, ya fue respondida, o no tienes permisos.',
       );
     }
 
-    if (request.status !== FriendshipStatus.PENDING) {
-      throw new BadRequestException('Esta solicitud ya ha sido respondida.');
-    }
+    await this.friendshipRepository
+      .createQueryBuilder()
+      .update(FriendshipEntity)
+      .set({ status: dto.status })
+      .where('id = :id', { id: request.id })
+      .execute();
 
-    request.status = dto.status;
-    return this.friendshipRepository.save(request);
+    return {
+      message: `Solicitud ${dto.status === FriendshipStatus.ACCEPTED ? 'aceptada' : 'rechazada'} correctamente.`,
+    };
   }
 
-  /**
-   * 3. Bloquear a un usuario (también cancela la amistad si existía).
-   */
+  // ─── 3. Bloquear ──────────────────────────────────────────────────────────
+
   async blockUser(
     currentUser: UserEntity,
     targetUuid: string,
-  ): Promise<FriendshipEntity> {
+  ): Promise<{ message: string }> {
     if (currentUser.uuid === targetUuid) {
       throw new BadRequestException('No puedes bloquearte a ti mismo.');
     }
 
-    let relationship = await this.friendshipRepository.findOne({
+    const targetUser = await this.findUserByUuid(targetUuid);
+
+    const existing = await this.friendshipRepository.findOne({
       where: [
-        { user: { id: currentUser.id }, friend: { uuid: targetUuid } },
-        { user: { uuid: targetUuid }, friend: { id: currentUser.id } },
+        { user: { id: currentUser.id }, friend: { id: targetUser.id } },
+        { user: { id: targetUser.id }, friend: { id: currentUser.id } },
       ],
     });
 
-    if (relationship) {
-      // Si ya existe relación, la actualizamos a BLOCKED desde el bloqueador
-      if (relationship.friend?.id === currentUser.id) {
-        // El usuario actual era el "friend", re-crear con roles invertidos
-        await this.friendshipRepository.remove(relationship);
-        relationship = null;
-      }
-    }
-
-    if (!relationship) {
-      relationship = this.friendshipRepository.create({
-        user: { id: currentUser.id } as UserEntity,
-        friend: { uuid: targetUuid } as UserEntity,
-        status: FriendshipStatus.BLOCKED,
-      });
+    if (existing) {
+      await this.friendshipRepository
+        .createQueryBuilder()
+        .update(FriendshipEntity)
+        .set({ status: FriendshipStatus.BLOCKED })
+        .where('id = :id', { id: existing.id })
+        .execute();
     } else {
-      relationship.status = FriendshipStatus.BLOCKED;
+      await this.friendshipRepository
+        .createQueryBuilder()
+        .insert()
+        .into(FriendshipEntity)
+        .values({
+          user: { id: currentUser.id } as UserEntity,
+          friend: { id: targetUser.id } as UserEntity,
+          status: FriendshipStatus.BLOCKED,
+        })
+        .execute();
     }
 
-    return this.friendshipRepository.save(relationship);
+    return { message: 'Usuario bloqueado correctamente.' };
   }
 
-  /**
-   * 4. Obtener lista de amigos aceptados del usuario autenticado.
-   */
+  // ─── 4. Listar amigos aceptados ───────────────────────────────────────────
+
   async getMyFriends(currentUser: UserEntity): Promise<UserEntity[]> {
     const friendships = await this.friendshipRepository.find({
       where: [
@@ -160,15 +179,13 @@ export class FriendsService {
       relations: ['user', 'friend'],
     });
 
-    // Devolver la contraparte de la relación (no el propio usuario)
     return friendships.map((f) =>
       f.user.id === currentUser.id ? f.friend : f.user,
     );
   }
 
-  /**
-   * 5. Obtener solicitudes pendientes recibidas.
-   */
+  // ─── 5. Solicitudes pendientes recibidas ──────────────────────────────────
+
   async getPendingRequests(currentUser: UserEntity): Promise<FriendshipEntity[]> {
     return this.friendshipRepository.find({
       where: {
@@ -179,9 +196,8 @@ export class FriendsService {
     });
   }
 
-  /**
-   * 6. Cancelar solicitud enviada o eliminar amistad.
-   */
+  // ─── 6. Eliminar amistad / cancelar solicitud ─────────────────────────────
+
   async removeFriendship(
     currentUser: UserEntity,
     requestUuid: string,
@@ -197,14 +213,22 @@ export class FriendsService {
       throw new NotFoundException('Relación de amistad no encontrada.');
     }
 
-    if (
-      relationship.status === FriendshipStatus.BLOCKED &&
-      relationship.user?.id !== currentUser.id
-    ) {
-      throw new ForbiddenException('No tienes permiso para modificar este bloqueo.');
+    if (relationship.status === FriendshipStatus.BLOCKED) {
+      const isBlocker = await this.friendshipRepository.findOne({
+        where: { uuid: requestUuid, user: { id: currentUser.id } },
+      });
+      if (!isBlocker) {
+        throw new ForbiddenException('No tienes permiso para eliminar este bloqueo.');
+      }
     }
 
-    await this.friendshipRepository.remove(relationship);
+    await this.friendshipRepository
+      .createQueryBuilder()
+      .delete()
+      .from(FriendshipEntity)
+      .where('id = :id', { id: relationship.id })
+      .execute();
+
     return { message: 'Relación eliminada correctamente.' };
   }
 }

@@ -26,11 +26,11 @@ export class FriendshipEntity {
   @Column({ type: 'enum', enum: FriendshipStatus, default: FriendshipStatus.PENDING })
   status: FriendshipStatus;
 
-  @ManyToOne(() => UserEntity, (user) => user.sentFriendRequest, { eager: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => UserEntity, (user) => user.sentFriendRequest, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
 
-  @ManyToOne(() => UserEntity, (user) => user.receivedFriendRequest, { eager: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => UserEntity, (user) => user.receivedFriendRequest, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'friendId' })
   friend: UserEntity;
 
