@@ -4,14 +4,14 @@ import { Repository } from 'typeorm';
 import { CommentsEntity } from './entities/comments.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from 'src/common/Mail/mail.service';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(CommentsEntity)
     private commentRepository: Repository<CommentsEntity>,
-    private readonly notificationsService: NotificationsService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(user: any, dto: CreateCommentDto) {
@@ -62,10 +62,9 @@ export class CommentsService {
     });
     if (!comment) throw new NotFoundException('Comment not found');
 
-    // Solo se notifica si quien elimina es Admin(1) o Moderador(2), no el propio autor
     const esModeradorOAdmin = ['1', '2'].includes(user.idRol.toString());
     if (esModeradorOAdmin) {
-      await this.notificationsService.notificarCommentEliminado(
+      await this.mailService.sendCommentEliminadoEmail(
         comment.author.email,
         comment.author.username,
         comment.content,

@@ -5,14 +5,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
 import { ensureExists } from 'src/common/utils/assertion.util';
 import { POST_ERRORS } from 'src/common/constants/error-messages';
-import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from 'src/common/Mail/mail.service';
 
 @Injectable()
 export class PostService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
-    private readonly notificationsService: NotificationsService,
+    private readonly mailService: MailService,
   ) {}
 
   async createPost(createPostDto: CreatePostDto): Promise<PostEntity> {
@@ -43,23 +43,23 @@ export class PostService {
     return this.postRepository.save(post);
   }
 
-async deletePost(id: number, idRolUsuario: string): Promise<void> {
-  const post = await this.postRepository.findOne({
-    where: { id },
-    relations: ['author'],
-  });
+  async deletePost(id: number, idRolUsuario: string): Promise<void> {
+    const post = await this.postRepository.findOne({
+      where: { id },
+      relations: ['author'],
+    });
 
-  if (!post) throw new NotFoundException(POST_ERRORS.NOT_FOUND());
+    if (!post) throw new NotFoundException(POST_ERRORS.NOT_FOUND());
 
-  const esModeradorOAdmin = ['1', '2'].includes(idRolUsuario);
-  if (esModeradorOAdmin) {
-    await this.notificationsService.notificarPostEliminado(
-      post.author.email,
-      post.author.username,
-      post.title,
-    );
+    const esModeradorOAdmin = ['1', '2'].includes(idRolUsuario);
+    if (esModeradorOAdmin) {
+      await this.mailService.sendPostEliminadoEmail(
+        post.author.email,
+        post.author.username,
+        post.title,
+      );
+    }
+
+    await this.postRepository.remove(post);
   }
-
-  await this.postRepository.remove(post);
-}
 }
