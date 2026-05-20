@@ -74,9 +74,9 @@ export class PostService {
         return this.postRepository.save(updatePost);
     }
 
-  async deletePost(id: number, idRolUsuario: string): Promise<void> {
+  async deletePost(uuid: string, idRolUsuario: string): Promise<void> {
     const post = await this.postRepository.findOne({
-      where: { id },
+      where: { uuid },
       relations: ['author'],
     });
 

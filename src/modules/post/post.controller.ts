@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostEntity } from './entities/post.entity';
@@ -59,11 +59,11 @@ export class PostController {
 @ApiResponse({ status: 403, description: 'Se requiere un rol con el permiso de realizar para eliminar' })
 @UseGuards(AutorGuard)
 @Autor(PostEntity)
-@Delete(':id')
+@Delete(':uuid')
 async deletePost(
-  @Param('id', ParseIntPipe) id: number,
+  @Param('uuid') uuid: string,
   @GetUser() user,
 ): Promise<void> {
-  return this.postService.deletePost(id, user.idRol.toString());
+  return this.postService.deletePost(uuid, user.idRol.toString());
 }
 }
