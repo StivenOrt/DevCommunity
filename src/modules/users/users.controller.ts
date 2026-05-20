@@ -13,11 +13,17 @@ export class UsersController {
 
 
   @Get()
+  @Rols('1')
+  @UseGuards(JwtAuthGuard, RolsGuard)
+  @ApiBearerAuth()
   findAll() {
     return this.usersService.findAll();
   }
 
   @Get('/:uuid')
+  @Rols('1')
+  @UseGuards(JwtAuthGuard, RolsGuard)
+  @ApiBearerAuth()
   findOne(@Param('uuid') uuid: string) {
     return this.usersService.findOneBy.uuid(uuid)
   }
