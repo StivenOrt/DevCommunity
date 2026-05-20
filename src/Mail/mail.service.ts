@@ -42,4 +42,49 @@ export class MailService {
       throw new ServiceUnavailableException('No se pudo enviar el código de restablecimiento. Verifica la configuración SMTP.');
     }
   }
+
+  // ─── Notificación de nueva publicación ─────────────────────────────
+
+  async sendNewPostNotification(
+    to: string,
+    authorName: string,
+    title: string,
+    content: string,
+  ) {
+
+    try {
+
+      await this.mailerService.sendMail({
+
+        // destinatario
+        to,
+
+        // asunto del correo
+        subject: `${authorName} publicó una nueva publicación`,
+
+        // template handlebars ubicado en templates/new-post.hbs
+        template: 'new-post',
+
+        // variables que usará el template
+        context: {
+          authorName,
+          title,
+
+          // preview corto del contenido
+          contentPreview: content.slice(0, 100),
+        },
+
+      });
+
+      this.logger.log(`New post notification sent to ${to}`);
+
+    } catch (error) {
+
+      this.logger.error(
+        'Failed to send new post notification',
+        error as Error,
+      );
+
+    }
+  }
 }

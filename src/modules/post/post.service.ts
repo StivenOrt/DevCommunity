@@ -7,6 +7,8 @@ import { ensureExists } from 'src/common/utils/assertion.util';
 import { POST_ERRORS } from 'src/common/constants/error-messages';
 import { UsersService } from '../users/users.service';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PostCreatedEvent } from './events/post-created.event';
 
 @Injectable()
 export class PostService {
@@ -14,7 +16,9 @@ export class PostService {
         @InjectRepository(PostEntity)
             private readonly postRepository: Repository<PostEntity>,
 
-        private readonly userRepository: UsersService
+        private readonly userRepository: UsersService,
+        
+        private readonly eventEmitter: EventEmitter2
     ) {}
 
     async createPost(createPostDto: CreatePostDto): Promise<PostEntity> {
@@ -27,7 +31,10 @@ export class PostService {
 
         const newPost = this.postRepository.create(newPostData);
 
-        return this.postRepository.save(newPost);
+        const savedPost = await this.postRepository.save(newPost);
+        this.eventEmitter.emit('post.created', new PostCreatedEvent(savedPost));
+
+        return savedPost;
     }
 
     async getAllPosts(): Promise<PostEntity[]> {

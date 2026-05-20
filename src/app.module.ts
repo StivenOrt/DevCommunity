@@ -10,6 +10,7 @@ import { ReactionsModule } from './modules/reactions/reactions.module';
 import { MailModule } from './Mail/mail.module';
 import { FriendsModule } from './modules/friends/friends.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { ChatModule } from './modules/chat/chat.module';
     ReactionsModule,
     MailModule,
     FriendsModule,
-    ChatModule
+    ChatModule,
+    EventEmitterModule.forRoot()
   ],
   controllers: [],
   providers: [],
