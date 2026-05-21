@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-
 import { PostCreatedEvent } from '../events/post-created.event';
-
 import { FriendsService } from 'src/modules/friends/friends.service';
 import { MailService } from 'src/Mail/mail.service';
 
@@ -19,6 +17,7 @@ export class PostNotificationListener {
 @OnEvent('post.created')
 async handlePostCreated(event: PostCreatedEvent) {
 
+    console.log(event)
     /* ─── obtenemos el post y autor ─── */
 
     const post = event.post;
@@ -27,7 +26,10 @@ async handlePostCreated(event: PostCreatedEvent) {
 
     /* ─── obtenemos amigos aceptados ─── */
 
+    console.log(author)
     const friends = await this.friendsService.getMyFriends(author);
+
+    console.log(friends)
 
     /* ─── eliminamos correos duplicados ─── */
 

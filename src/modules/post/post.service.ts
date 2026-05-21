@@ -37,6 +37,8 @@ export class PostService {
         const newPost = this.postRepository.create(newPostData);
         const savedPost = await this.postRepository.save(newPost);
         
+        console.log(savedPost)
+        
         // Disparar evento del sistema
         this.eventEmitter.emit('post.created', new PostCreatedEvent(savedPost));
 
