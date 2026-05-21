@@ -73,4 +73,9 @@ export class UsersService {
     
     return this.userRepository.save(user);
   }
+
+  async updatePasswordByEmail(email: string, newHash: string) {
+    const res = await this.userRepository.update({ email }, { passwordHash: newHash });
+    return res;
+  }
 }

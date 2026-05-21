@@ -6,6 +6,9 @@ import { JWT_ERRORS } from 'src/common/constants/error-messages';
 export class JwtAuthGuard extends AuthGuard('jwt') {
 
   handleRequest<TUser = any>(err: any, user: any): TUser {
+
+    console.log(user)
+    
     if (err || !user) throw err || new UnauthorizedException( JWT_ERRORS.UNAUTHORIZED() );
     
     return user;

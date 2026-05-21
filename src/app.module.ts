@@ -7,12 +7,21 @@ import { UsersModule } from './modules/users/users.module';
 import { PostModule } from './modules/post/post.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ReactionsModule } from './modules/reactions/reactions.module';
+import { MailModule } from './Mail/mail.module';
+import { FriendsModule } from './modules/friends/friends.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, 'public')
     }),
     DatabaseModule,
     AuthModule,
@@ -21,6 +30,10 @@ import { ReactionsModule } from './modules/reactions/reactions.module';
     PostModule,
     CommentsModule,
     ReactionsModule,
+    MailModule,
+    FriendsModule,
+    ChatModule,
+    EventEmitterModule.forRoot()
   ],
   controllers: [],
   providers: [],
