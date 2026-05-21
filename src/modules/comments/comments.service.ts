@@ -6,6 +6,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { MailService } from 'src/common/Mail/mail.service';
 import { PostEntity } from '../post/entities/post.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
@@ -13,6 +14,7 @@ export class CommentsService {
     @InjectRepository(CommentsEntity)
     private commentRepository: Repository<CommentsEntity>,
     private readonly mailService: MailService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(user: any, dto: CreateCommentDto) {

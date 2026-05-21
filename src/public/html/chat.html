@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliente de Chat - NestJS Socket.io</title>
+    <!-- Cargamos el cliente oficial de Socket.io -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        button.disconnect { background-color: #dc3545; }
+        button.disconnect:hover { background-color: #bd2130; }
+        #status { font-weight: bold; margin-left: 10px; }
+        .connected { color: green; }
+        .disconnected { color: red; }
+        #chatBox { height: 250px; border: 1px solid #ddd; border-radius: 4px; overflow-y: scroll; padding: 10px; background: #fafafa; margin-bottom: 10px; }
+        .message { margin-bottom: 8px; padding: 6px; border-radius: 4px; background: #e9ecef; }
+        .message .user { font-weight: bold; color: #007bff; }
+        .message .time { font-size: 0.8em; color: #777; margin-left: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Probador de Chat WebSocket</h2>
+
+    <!-- SECCIÓN 1: AUTENTICACIÓN Y CONEXIÓN -->
+    <div class="section">
+        <h3>1. Conexión al Servidor</h3>
+        <label for="token">Bearer Token (JWT)</label>
+        <textarea id="token" rows="3" placeholder="Pega tu JWT completo aquí..."></textarea>
+        
+        <button id="btnConnect" onclick="connectSocket()">Conectar</button>
+        <button id="btnDisconnect" onclick="disconnectSocket()" class="disconnect" style="display:none;">Desconectar</button>
+        <span id="status" class="disconnected">Desconectado</span>
+    </div>
+
+    <!-- SECCIÓN 2: UNIRSE A LA SALA -->
+    <div class="section" id="roomSection" style="display:none;">
+        <h3>2. Seleccionar Chat</h3>
+        <label for="chatUuid">UUID del Chat</label>
+        <input type="text" id="chatUuid" placeholder="Ej: a1b2c3d4-e5f6-7a8b-... " />
+        <button onclick="joinChat()">Unirse al Chat</button>
+        <button onclick="leaveChat()" class="disconnect">Salir del Chat</button>
+    </div>
+
+    <!-- SECCIÓN 3: CHAT EN TIEMPO REAL -->
+    <div class="section" id="chatSection" style="display:none;">
+        <h3>3. Sala de Chat: <span id="currentRoomText">-</span></h3>
+        <div id="chatBox"></div>
+        
+        <input type="text" id="messageText" placeholder="Escribe tu mensaje aquí..." onkeypress="handleKeyPress(event)" />
+        <button onclick="sendMessage()">Enviar Mensaje</button>
+    </div>
+</div>
+
+<script>
+    let socket = null;
+    let currentChatUuid = null;
+
+    const statusEl = document.getElementById('status');
+    const tokenEl = document.getElementById('token');
+    const chatUuidEl = document.getElementById('chatUuid');
+    const messageTextEl = document.getElementById('messageText');
+    const chatBoxEl = document.getElementById('chatBox');
+
+    // CONECTAR AL SERVER INYECTANDO EL TOKEN
+    function connectSocket() {
+        const tokenRaw = tokenEl.value.trim();
+        if (!tokenRaw) {
+            alert('Por favor, ingresa un token JWT válido');
+            return;
+        }
+
+        // Limpiamos el prefijo 'Bearer ' si lo pegaste con él, ya que lo mandaremos limpio en la propiedad auth
+        const token = tokenRaw.startsWith('Bearer ') ? tokenRaw.slice(7).trim() : tokenRaw;
+
+        // Inicializamos la conexión apuntando a tu backend de NestJS
+        // Pasamos el token dentro de la opción 'auth', que es recogida por tu: socket?.handshake?.auth?.token
+        socket = io('http://localhost:3000', {
+            path: '/chat/socket.io',
+            auth: {
+                token: token
+            },
+            transports: ['websocket'] // Forzamos WebSockets para evitar problemas de CORS iniciales
+        });
+
+        // ESCUCHAR EVENTOS DEL SISTEMA SUCKET.IO
+        socket.on('connect', () => {
+            statusEl.textContent = 'Conectado';
+            statusEl.className = 'connected';
+            document.getElementById('btnConnect').style.display = 'none';
+            document.getElementById('btnDisconnect').style.style.display = 'inline-block';
+            document.getElementById('roomSection').style.display = 'block';
+        });
+
+        socket.on('disconnect', () => {
+            resetUI();
+        });
+
+        socket.on('connect_error', (error) => {
+            alert(`Error de Conexión: ${error.message}`);
+            resetUI();
+        });
+
+        // 💡 EL LISTENER PRINCIPAL QUE PEDÍAS: Escucha los mensajes nuevos globales o de la sala
+        socket.on('message.update', (payload) => {
+            appendMessage(payload);
+        });
+
+        // Escuchar si el backend te confirma que te uniste con éxito
+        socket.on('joinedChat', (data) => {
+            currentChatUuid = data.chatUuid;
+            document.getElementById('currentRoomText').textContent = data.chatUuid;
+            document.getElementById('chatSection').style.display = 'block';
+            chatBoxEl.innerHTML = ''; // Limpiamos pantalla al cambiar de sala
+        });
+
+        // Escuchar errores personalizados enviados por el backend
+        socket.on('error', (err) => {
+            alert(`Error del Servidor: ${err.message}`);
+        });
+    }
+
+    function disconnectSocket() {
+        if (socket) socket.disconnect();
+    }
+
+    // ACCIONES DE SALA (EMITTERS)
+    function joinChat() {
+        const chatUuid = chatUuidEl.value.trim();
+        if (!chatUuid) return alert('Ingresa un UUID de chat válido');
+        
+        // Emitimos el evento que lee tu @SubscribeMessage('joinChat')
+        socket.emit('joinChat', { chatUuid });
+    }
+
+    function leaveChat() {
+        if (!currentChatUuid) return;
+        socket.emit('leaveChat', { chatUuid: currentChatUuid });
+        document.getElementById('chatSection').style.display = 'none';
+        currentChatUuid = null;
+    }
+
+    function sendMessage() {
+        const text = messageTextEl.value.trim();
+        if (!text || !currentChatUuid) return;
+
+        // Emitimos el evento que lee tu @SubscribeMessage('sendMessage')
+        socket.emit('sendMessage', {
+            text: text,
+            chatUuid: currentChatUuid
+        });
+
+        messageTextEl.value = ''; // Limpiar input
+    }
+
+    // RENDERIZADO DE MENSAJES RECIBIDOS EN EL FRONTEND
+    function appendMessage(payload) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        
+        const time = new Date(payload.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        msgDiv.innerHTML = `
+            <span class="user">${payload.user.username}</span>
+            <span class="time">${time}</span>
+            <div class="text">${payload.text}</div>
+        `;
+        
+        chatBoxEl.appendChild(msgDiv);
+        chatBoxEl.scrollTop = chatBoxEl.scrollHeight; // Auto-scroll hacia abajo
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    function resetUI() {
+        statusEl.textContent = 'Desconectado';
+        statusEl.className = 'disconnected';
+        document.getElementById('btnConnect').style.display = 'inline-block';
+        document.getElementById('btnDisconnect').style.display = 'none';
+        document.getElementById('roomSection').style.display = 'none';
+        document.getElementById('chatSection').style.display = 'none';
+        currentChatUuid = null;
+        socket = null;
+    }
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import { ApiHideProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
 import { UserEntity } from "src/modules/users/entities/users.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { MessageEntity } from "./message.entity";
 
 
@@ -14,14 +14,15 @@ export class ChatEntity {
     id: number;
 
     @Column({ type: 'uuid', unique: true })
+    @Generated('uuid')
     uuid: string;
 
     @ManyToOne( () => UserEntity, (user) => user.sender)
-    @JoinColumn()
+    @JoinColumn({ name: 'sender' })
     sender: UserEntity;
 
     @ManyToOne( () => UserEntity, (user) => user.receiver)
-    @JoinColumn()
+    @JoinColumn({ name: 'receiver' })
     receiver: UserEntity;
 
     @OneToMany( () => MessageEntity, (message) => message.chat)
