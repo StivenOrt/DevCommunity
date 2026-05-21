@@ -14,7 +14,7 @@ export class NotificationsService {
       service: 'gmail',
       auth: {
         user: this.configService.getOrThrow<string>('MAIL_USER'),
-        pass: this.configService.getOrThrow<string>('MAIL_PASS'),
+        pass: this.configService.getOrThrow<string>('MAIL_PASSWORD'),
       },
     });
   }

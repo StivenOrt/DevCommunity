@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Patch, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto'; // Importamos el DTO de actualización
 import { PostEntity } from './entities/post.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -8,7 +9,6 @@ import { RolsGuard } from '../auth/guards/rols.guard';
 import { AutorGuard } from '../auth/guards/author.guard';
 import { Autor } from '../auth/decorators/authors.decorator';
 import { GetUser } from '../auth/decorators/get-user.decorator';
-
 
 @UseGuards(JwtAuthGuard, RolsGuard)
 @ApiBearerAuth()
@@ -32,24 +32,27 @@ export class PostController {
     return this.postService.getAllPosts();
   }
 
-  @ApiOperation({ summary: 'Obtiene una publicación por su id' })
+  @ApiOperation({ summary: 'Obtiene una publicación por su uuid' })
   @ApiResponse({ status: 200, description: 'Devuelve la publicación activa' })
-  @ApiResponse({ status: 404, description: 'Retorna un mensaje de error debido a no existis esa publicacion' })
+  @ApiResponse({ status: 404, description: 'Retorna un mensaje de error debido a no existir esa publicación' })
   @UseGuards(AutorGuard)
   @Autor(PostEntity)
   @Get(':uuid')
-  async getPostById(@Param('uuid') uuid: string): Promise<PostEntity> {
+  async getPostById(@Param('uuid', ParseUUIDPipe) uuid: string): Promise<PostEntity> {
     return this.postService.getOneBy.uuid(uuid);
   }
 
   @ApiOperation({ summary: 'Actualiza una publicación' })
-  @ApiResponse({ status: 200, description: 'Devuelve el nuevo objeto de la publicacion' })
-  @ApiResponse({ status: 404, description: 'Recurso no hallado con dicho id' })
+  @ApiResponse({ status: 200, description: 'Devuelve el nuevo objeto de la publicación' })
+  @ApiResponse({ status: 404, description: 'Recurso no hallado con dicho uuid' })
   @ApiResponse({ status: 403, description: 'Se requiere un rol con el permiso requerido para actualizar' })
   @UseGuards(AutorGuard)
   @Autor(PostEntity)
   @Patch(':uuid')
-  async updatePost( @Param('uuid') uuid: string, @Body() updatePostDto: CreatePostDto ): Promise<PostEntity> {
+  async updatePost(
+    @Param('uuid', ParseUUIDPipe) uuid: string, 
+    @Body() updatePostDto: UpdatePostDto // CORREGIDO: Usar el DTO correcto para parches
+  ): Promise<PostEntity> {
     return this.postService.updatePost(uuid, updatePostDto);
   }
   
@@ -60,22 +63,11 @@ export class PostController {
   @UseGuards(AutorGuard)
   @Autor(PostEntity)
   @Delete(':uuid')
-  async deletePost(@Param('uuid') uuid: string ): Promise<void> {
-    return this.postService.deletePost(uuid);
+  async deletePost(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @GetUser() user: any // UNIFICADO: Extraemos el usuario autenticado del JWT
+  ): Promise<void> {
+    // Le enviamos el UUID del post y el ID de su rol transformado en string al servicio
+    return this.postService.deletePost(uuid, user.idRol?.toString());
   }
-
-
-@ApiOperation({ summary: 'Elimina una publicación' })
-@ApiResponse({ status: 200, description: 'Devuelve un mensaje de confirmación del borrado' })
-@ApiResponse({ status: 404, description: 'Publicación no hallada para eliminar' })
-@ApiResponse({ status: 403, description: 'Se requiere un rol con el permiso de realizar para eliminar' })
-@UseGuards(AutorGuard)
-@Autor(PostEntity)
-@Delete(':id')
-async deletePost(
-  @Param('id', ParseIntPipe) id: number,
-  @GetUser() user,
-): Promise<void> {
-  return this.postService.deletePost(id, user.idRol.toString());
-}
 }
