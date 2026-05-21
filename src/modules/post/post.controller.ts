@@ -7,6 +7,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagg
 import { RolsGuard } from '../auth/guards/rols.guard';
 import { AutorGuard } from '../auth/guards/author.guard';
 import { Autor } from '../auth/decorators/authors.decorator';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
 
 @UseGuards(JwtAuthGuard, RolsGuard)
@@ -64,4 +65,17 @@ export class PostController {
   }
 
 
+@ApiOperation({ summary: 'Elimina una publicación' })
+@ApiResponse({ status: 200, description: 'Devuelve un mensaje de confirmación del borrado' })
+@ApiResponse({ status: 404, description: 'Publicación no hallada para eliminar' })
+@ApiResponse({ status: 403, description: 'Se requiere un rol con el permiso de realizar para eliminar' })
+@UseGuards(AutorGuard)
+@Autor(PostEntity)
+@Delete(':id')
+async deletePost(
+  @Param('id', ParseIntPipe) id: number,
+  @GetUser() user,
+): Promise<void> {
+  return this.postService.deletePost(id, user.idRol.toString());
+}
 }

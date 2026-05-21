@@ -1,19 +1,17 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm'; // ← agregado
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CommentsEntity } from './entities/comments.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(CommentsEntity)
     private commentRepository: Repository<CommentsEntity>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(user: any, dto: CreateCommentDto) {
@@ -31,13 +29,9 @@ export class CommentsService {
   async findByPost(postId: number, page: number = 1) {
     const limit = 5;
     const [comments, total] = await this.commentRepository.findAndCount({
-      where: {
-        post: { id: postId },
-      },
+      where: { post: { id: postId } },
       relations: ['author'],
-      order: {
-        createdAt: 'DESC',
-      },
+      order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -56,9 +50,7 @@ export class CommentsService {
       where: { id: commentId },
       relations: ['author'],
     });
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
+    if (!comment) throw new NotFoundException('Comment not found');
     if (comment.author.id !== user.id) {
       throw new ForbiddenException('You can only edit your own comments');
     }
@@ -66,17 +58,23 @@ export class CommentsService {
     return this.commentRepository.save(comment);
   }
 
-  async remove(user: any, commentId: number) {
+  async remove(user: any, commentId: number): Promise<void> {
     const comment = await this.commentRepository.findOne({
       where: { id: commentId },
       relations: ['author'],
     });
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
+    if (!comment) throw new NotFoundException('Comment not found');
+
+    // Solo se notifica si quien elimina es Admin(1) o Moderador(2), no el propio autor
+    const esModeradorOAdmin = ['1', '2'].includes(user.idRol.toString());
+    if (esModeradorOAdmin) {
+      await this.notificationsService.notificarCommentEliminado(
+        comment.author.email,
+        comment.author.username,
+        comment.content,
+      );
     }
-    if (comment.author.id !== user.id && user.rol !== 'moderator') {
-      throw new ForbiddenException('Not allowed to delete this comment');
-    }
-    return this.commentRepository.remove(comment);
+
+    await this.commentRepository.remove(comment);
   }
 }

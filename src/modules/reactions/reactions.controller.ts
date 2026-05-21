@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ReactionsService } from './reactions.service';
 import { CreateReactionDto } from './dto/create-reaction.dto';
-import { GetUser } from '../auth/decorators/get-user.decorator';
+import { GetUser } from   '../auth/decorators/get-user.decorator';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RolsGuard } from '../auth/guards/rols.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';

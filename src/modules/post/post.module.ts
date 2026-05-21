@@ -5,6 +5,7 @@ import { PostEntity } from './entities/post.entity';
 
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 import { UsersModule } from '../users/users.module';
 
@@ -16,31 +17,8 @@ import { MailModule } from 'src/Mail/mail.module';
 import { PostNotificationListener } from './listeners/post-notification.listener';
 
 @Module({
-  imports: [
-
-    TypeOrmModule.forFeature([PostEntity]),
-
-    UsersModule,
-
-    /* ─── NUEVO ───────────────────────────── */
-
-    // necesario para obtener amigos del autor
-    FriendsModule,
-
-    // necesario para enviar correos
-    MailModule,
-  ],
-
-  providers: [
-
-    PostService,
-
-    /* ─── NUEVO ───────────────────────────── */
-
-    // listener que escucha cuando se crea un post
-    PostNotificationListener,
-  ],
-
+  imports: [TypeOrmModule.forFeature([PostEntity]), NotificationsModule],
+  providers: [PostService],
   controllers: [PostController],
 
   exports: [
