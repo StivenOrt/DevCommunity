@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Patch,
-  Delete,
-  Param,
-  Body,
-  UseGuards,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, ParseIntPipe, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -22,7 +12,7 @@ import { CommentsEntity } from './entities/comments.entity';
 
 @UseGuards(JwtAuthGuard, RolsGuard)
 @ApiTags('comments')
-@ApiBearerAuth() 
+@ApiBearerAuth()
 @Controller('comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
@@ -31,32 +21,33 @@ export class CommentsController {
   create(@GetUser() user, @Body() dto: CreateCommentDto) {
     return this.commentsService.create(user, dto);
   }
- 
-  @UseGuards(AutorGuard)
-  @Autor(CommentsEntity)
-  @Get('post/:postId')
-  findByPost(@Param('postId', ParseIntPipe) postId: number) {
-    return this.commentsService.findByPost(postId);
+
+  @Get('post/:postUuid')
+  findByPost(
+    @Param('postUuid') postUuid: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+  ) {
+    return this.commentsService.findByPost(postUuid, page);
   }
 
   @UseGuards(AutorGuard)
   @Autor(CommentsEntity)
-  @Patch(':id')
+  @Patch(':uuid')
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('uuid') uuid: string,
     @GetUser() user,
     @Body() dto: UpdateCommentDto,
   ) {
-    return this.commentsService.update(user, id, dto);
+    return this.commentsService.update(user, uuid, dto);
   }
 
   @UseGuards(AutorGuard)
   @Autor(CommentsEntity)
-  @Delete(':id')
+  @Delete(':uuid')
   remove(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('uuid') uuid: string,
     @GetUser() user,
   ) {
-    return this.commentsService.remove(user, id);
+    return this.commentsService.remove(user, uuid);
   }
 }

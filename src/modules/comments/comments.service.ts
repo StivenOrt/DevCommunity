@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { CommentsEntity } from './entities/comments.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { MailService } from 'src/common/Mail/mail.service';
+import { PostEntity } from '../post/entities/post.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
@@ -11,25 +13,30 @@ export class CommentsService {
   constructor(
     @InjectRepository(CommentsEntity)
     private commentRepository: Repository<CommentsEntity>,
+    private readonly mailService: MailService,
     private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(user: any, dto: CreateCommentDto) {
+  const post = await this.commentRepository.manager.findOne(PostEntity, {
+    where: { uuid: dto.postUuid },
+  });
 
-    const comment = this.commentRepository.create({
-      content: dto.content,
-      author: { id: user.id },
-      post: { uuid: dto.postUuid },
-    });
+  if (!post) throw new NotFoundException('Post no encontrado');
 
-    return this.commentRepository.save(comment);
+  const comment = this.commentRepository.create({
+    content: dto.content,
+    author: { id: user.id },
+    post: { id: post.id }, // TypeORM usa id internamente
+  });
 
-  }
+  return this.commentRepository.save(comment);
+}
 
-  async findByPost(postId: number, page: number = 1) {
+  async findByPost(postUuid: string, page: number = 1) {
     const limit = 5;
     const [comments, total] = await this.commentRepository.findAndCount({
-      where: { post: { id: postId } },
+      where: { post: { uuid: postUuid } },
       relations: ['author'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
@@ -45,9 +52,9 @@ export class CommentsService {
     };
   }
 
-  async update(user: any, commentId: number, dto: UpdateCommentDto) {
+  async update(user: any, uuid: string, dto: UpdateCommentDto) {
     const comment = await this.commentRepository.findOne({
-      where: { id: commentId },
+      where: { uuid },
       relations: ['author'],
     });
     if (!comment) throw new NotFoundException('Comment not found');
@@ -58,17 +65,16 @@ export class CommentsService {
     return this.commentRepository.save(comment);
   }
 
-  async remove(user: any, commentId: number): Promise<void> {
+  async remove(user: any, uuid: string): Promise<void> {
     const comment = await this.commentRepository.findOne({
-      where: { id: commentId },
+      where: { uuid },
       relations: ['author'],
     });
     if (!comment) throw new NotFoundException('Comment not found');
 
-    // Solo se notifica si quien elimina es Admin(1) o Moderador(2), no el propio autor
     const esModeradorOAdmin = ['1', '2'].includes(user.idRol.toString());
     if (esModeradorOAdmin) {
-      await this.notificationsService.notificarCommentEliminado(
+      await this.mailService.sendCommentEliminadoEmail(
         comment.author.email,
         comment.author.username,
         comment.content,

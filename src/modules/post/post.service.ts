@@ -7,19 +7,21 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { ensureExists } from 'src/common/utils/assertion.util';
 import { POST_ERRORS } from 'src/common/constants/error-messages';
 import { UsersService } from '../users/users.service';
-import { NotificationsService } from '../notifications/notifications.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PostCreatedEvent } from './events/post-created.event';
+import { NotificationsService } from '../notifications/notifications.service';
+
 
 @Injectable()
 export class PostService {
     constructor(
         @InjectRepository(PostEntity)
-        private readonly postRepository: Repository<PostEntity>,
+            private readonly postRepository: Repository<PostEntity>,
 
         private readonly userRepository: UsersService,
         private readonly notificationsService: NotificationsService,
         private readonly eventEmitter: EventEmitter2
+
     ) {}
 
     // --- MÉTODOS DE ESCRITURA Y ACCIONES ---
@@ -43,19 +45,17 @@ export class PostService {
 
     async updatePost(uuid: string, updatePostDto: UpdatePostDto): Promise<PostEntity> {
         const { authorUuid, ...newData } = updatePostDto;
-        const postData: Partial<PostEntity> = { ...newData };
 
-        // Buscamos el post por UUID primero para garantizar su existencia
-        const post = await this.getOneBy.uuid(uuid);
+        const postData: Partial<PostEntity> = { ...newData }
 
-        // Si opcionalmente cambian de autor, lo buscamos y actualizamos la relación
-        if (authorUuid) {
-            postData.author = await this.userRepository.findOneBy.uuid(authorUuid);
-        }
+        const post = await this.getOneBy.uuid(uuid)
 
-        const updatedPost = this.postRepository.merge(post, postData);
-        return this.postRepository.save(updatedPost);
+        const updatePost = this.postRepository.merge(post, postData)
+
+        return this.postRepository.save(updatePost);
     }
+
+
 
     async deletePost(uuid: string, idRolUsuario?: string): Promise<void> {
         // Traemos el post con su relación de autor para poder enviarle una notificación si aplica
