@@ -7,15 +7,19 @@ import { ensureExists } from 'src/common/utils/assertion.util';
 import { POST_ERRORS } from 'src/common/constants/error-messages';
 import { UsersService } from '../users/users.service';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { MailService } from 'src/common/Mail/mail.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PostCreatedEvent } from './events/post-created.event';
 
 @Injectable()
 export class PostService {
-    constructor(
-        @InjectRepository(PostEntity)
-            private readonly postRepository: Repository<PostEntity>,
+  constructor(
+    @InjectRepository(PostEntity)
+    private readonly postRepository: Repository<PostEntity>,
+    private readonly mailService: MailService,
 
+        private readonly userRepository: UsersService
+  ) {}
         private readonly userRepository: UsersService,
         
         private readonly eventEmitter: EventEmitter2
@@ -100,15 +104,25 @@ export class PostService {
         return this.postRepository.save(updatePost);
     }
 
-    async deletePost(uuid: string): Promise<void> {
+  async deletePost(uuid: string, idRolUsuario: string): Promise<void> {
+    const post = await this.postRepository.findOne({
+      where: { uuid },
+      relations: ['author'],
+    });
 
-        const post = ensureExists(
-            await this.getOneBy.uuid(uuid),
-            new NotFoundException(POST_ERRORS.NOT_FOUND())
-        )
+    if (!post) throw new NotFoundException(POST_ERRORS.NOT_FOUND());
 
-        await this.postRepository.remove(post);
+    const esModeradorOAdmin = ['1', '2'].includes(idRolUsuario);
+    if (esModeradorOAdmin) {
+      await this.mailService.sendPostEliminadoEmail(
+        post.author.email,
+        post.author.username,
+        post.title,
+      );
     }
+
+    await this.postRepository.remove(post);
+  }
   async updatePost(id: number, updatePostDto: CreatePostDto): Promise<PostEntity> {
     const post = ensureExists(
       await this.getPostById(id),

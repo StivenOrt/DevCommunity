@@ -126,6 +126,7 @@ export class AuthService {
         email: user.email,
         role: user.role?.name,
         idRol: user.role.id,
+        Uuid: user.uuid,
       },
     };
   }

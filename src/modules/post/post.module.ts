@@ -5,6 +5,7 @@ import { PostEntity } from './entities/post.entity';
 
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
+import { MailModule } from '../../common/Mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 import { UsersModule } from '../users/users.module';
@@ -17,6 +18,11 @@ import { MailModule } from 'src/Mail/mail.module';
 import { PostNotificationListener } from './listeners/post-notification.listener';
 
 @Module({
+  imports: [
+    TypeOrmModule.forFeature([PostEntity]),
+    UsersModule,
+    MailModule
+  ],
   imports: [TypeOrmModule.forFeature([PostEntity]), NotificationsModule],
   providers: [PostService],
   controllers: [PostController],
