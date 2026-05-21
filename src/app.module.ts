@@ -10,6 +10,7 @@ import { ReactionsModule } from './modules/reactions/reactions.module';
 import { MailModule } from './Mail/mail.module';
 import { FriendsModule } from './modules/friends/friends.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -31,7 +32,8 @@ import { join } from 'path';
     ReactionsModule,
     MailModule,
     FriendsModule,
-    ChatModule
+    ChatModule,
+    EventEmitterModule.forRoot()
   ],
   controllers: [],
   providers: [],
