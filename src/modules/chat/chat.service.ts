@@ -5,12 +5,17 @@ import { FriendsService } from '../friends/friends.service';
 import { ChatEntity } from './entities/chat.entity';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UsersService } from '../users/users.service';
+import { CreateMessageDto } from './dto/create-message.dto';
+import { MessageEntity } from './entities/message.entity';
 
 @Injectable()
 export class ChatService {
   constructor(
     @InjectRepository(ChatEntity)
     private readonly chatRepository: Repository<ChatEntity>,
+
+    @InjectRepository(MessageEntity)
+    private readonly messageRepository: Repository<MessageEntity>,
 
     private readonly friendsService: FriendsService,
     private readonly userService: UsersService
@@ -35,8 +40,6 @@ export class ChatService {
         return chat
     }
   }
-
-
 
 
   async create(createChatDto: CreateChatDto) {
@@ -69,6 +72,37 @@ export class ChatService {
     const newChat = this.chatRepository.create(newData)
 
     return await this.chatRepository.save(newChat)
+  }
+
+  messages = {
+
+    getAll: async(chatUuid: string) => {
+
+      const chat = await this.chatRepository.findOne({
+        where: { uuid: chatUuid },
+        relations: { messages: true }
+      })
+      if (!chat) throw new NotFoundException('No existe ese chat')
+        return chat
+    },
+
+    create: async(createMessageDto: CreateMessageDto) => {
+
+      const { chatUuid, senderUuid, ...newData } = createMessageDto;
+
+      const newMessageData: Partial<MessageEntity> = { ...newData }
+      const sender = await this.userService.findOneBy.uuid(createMessageDto.senderUuid)
+      const chat = await this.findOneBy.uuid(createMessageDto.chatUuid)
+
+      if (chat.sender.id !== sender.id && chat.receiver.id !== sender.id) throw new NotFoundException('No existe este chat')
+
+      newMessageData.sender = sender;
+      newMessageData.chat = chat
+      
+      const newMessage = this.messageRepository.create(newMessageData)
+
+      return await this.messageRepository.save(newMessage)
+    }
   }
 
 
