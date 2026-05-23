@@ -6,7 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { VerificationEntity } from './entities/verification.entity';
-import { MailService } from '../../Mail/mail.service';
+import { MailService } from '../../common/Mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
@@ -39,6 +39,7 @@ export class AuthService {
         email: user.email,
         role: user.role?.name,
         idRol: user.role.id,
+        uuid: user.uuid,
       },
     };
   }
@@ -126,7 +127,7 @@ export class AuthService {
         email: user.email,
         role: user.role?.name,
         idRol: user.role.id,
-        Uuid: user.uuid,
+        uuid: user.uuid,
       },
     };
   }

@@ -59,7 +59,7 @@ export class MailService {
       this.logger.error('Failed to send post eliminado email', error as Error);
       throw new ServiceUnavailableException('No se pudo enviar la notificación de eliminación.');
     }
-}
+  }
 
   async sendCommentEliminadoEmail(to: string, username: string, commentContent: string) {
     try {
@@ -76,6 +76,25 @@ export class MailService {
     } catch (error) {
       this.logger.error('Failed to send comment eliminado email', error as Error);
       throw new ServiceUnavailableException('No se pudo enviar la notificación de eliminación.');
+    }
+  }
+
+  async sendNewPostNotification(to: string, authorName: string, title: string, content: string) {
+    try {
+      await this.mailerService.sendMail({
+        to,
+        subject: `${authorName} publicó una nueva publicación`,
+        template: 'new-post',
+        context: {
+          authorName,
+          title,
+          contentPreview: content.slice(0, 100),
+        },
+      });
+      this.logger.log(`New post notification sent to: ${to}`);
+    } catch (error) {
+      this.logger.error('Failed to send new post notification', error as Error);
+      throw new ServiceUnavailableException('No se pudo enviar la notificación de nuevo post.');
     }
   }
 }

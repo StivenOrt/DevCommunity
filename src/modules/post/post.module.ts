@@ -1,35 +1,22 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { PostEntity } from './entities/post.entity';
-
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
 import { MailModule } from '../../common/Mail/mail.module';
-import { NotificationsModule } from '../notifications/notifications.module';
-
 import { UsersModule } from '../users/users.module';
-
-/* ─── NUEVO: módulos necesarios para notificaciones ─── */
 import { FriendsModule } from '../friends/friends.module';
-import { MailModule } from 'src/Mail/mail.module';
-
-/* ─── NUEVO: listener de notificaciones ─── */
 import { PostNotificationListener } from './listeners/post-notification.listener';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PostEntity]),
     UsersModule,
-    MailModule
+    MailModule,
+    FriendsModule,
   ],
-  imports: [TypeOrmModule.forFeature([PostEntity]), NotificationsModule],
-  providers: [PostService],
+  providers: [PostService, PostNotificationListener],
   controllers: [PostController],
-
-  exports: [
-    TypeOrmModule,
-    PostService,
-  ],
+  exports: [TypeOrmModule, PostService],
 })
 export class PostModule {}
