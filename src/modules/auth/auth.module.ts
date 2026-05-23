@@ -7,7 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RolesEntity } from '../roles/entities/roles.entity';
 import { VerificationEntity } from './entities/verification.entity';
-import { MailModule } from '../../Mail/mail.module';
+import { MailModule } from '../../common/Mail/mail.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';

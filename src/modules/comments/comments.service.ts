@@ -6,7 +6,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { MailService } from 'src/common/Mail/mail.service';
 import { PostEntity } from '../post/entities/post.entity';
-import { NotificationsService } from '../notifications/notifications.service';
+
 
 @Injectable()
 export class CommentsService {
@@ -14,24 +14,23 @@ export class CommentsService {
     @InjectRepository(CommentsEntity)
     private commentRepository: Repository<CommentsEntity>,
     private readonly mailService: MailService,
-    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(user: any, dto: CreateCommentDto) {
-  const post = await this.commentRepository.manager.findOne(PostEntity, {
-    where: { uuid: dto.postUuid },
-  });
+    const post = await this.commentRepository.manager.findOne(PostEntity, {
+      where: { uuid: dto.postUuid },
+    });
 
-  if (!post) throw new NotFoundException('Post no encontrado');
+    if (!post) throw new NotFoundException('Post no encontrado');
 
-  const comment = this.commentRepository.create({
-    content: dto.content,
-    author: { id: user.id },
-    post: { id: post.id }, // TypeORM usa id internamente
-  });
+    const comment = this.commentRepository.create({
+      content: dto.content,
+      authorId: user.id,
+      postId: post.id,
+    });
 
-  return this.commentRepository.save(comment);
-}
+    return this.commentRepository.save(comment);
+  }
 
   async findByPost(postUuid: string, page: number = 1) {
     const limit = 5;
@@ -57,12 +56,18 @@ export class CommentsService {
       where: { uuid },
       relations: ['author'],
     });
+
     if (!comment) throw new NotFoundException('Comment not found');
-    if (comment.author.id !== user.id) {
-      throw new ForbiddenException('You can only edit your own comments');
-    }
-    comment.content = dto.content;
-    return this.commentRepository.save(comment);
+
+    await this.commentRepository.update(
+      { id: comment.id },
+      { content: dto.content },
+    );
+
+    return this.commentRepository.findOne({
+      where: { uuid },
+      relations: ['author'],
+    });
   }
 
   async remove(user: any, uuid: string): Promise<void> {

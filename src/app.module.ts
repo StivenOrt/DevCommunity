@@ -7,7 +7,7 @@ import { UsersModule } from './modules/users/users.module';
 import { PostModule } from './modules/post/post.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { ReactionsModule } from './modules/reactions/reactions.module';
-import { MailModule } from './Mail/mail.module';
+import { MailModule } from './common/Mail/mail.module';
 import { FriendsModule } from './modules/friends/friends.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';

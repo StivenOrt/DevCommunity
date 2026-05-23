@@ -20,20 +20,26 @@ export class CommentsEntity {
   @Column({ type: 'uuid' })
   @Generated('uuid')
   uuid: string;
-  
+
   @Column({ type: 'varchar' })
   content: string;
+
+  @Column()
+  authorId: number;
 
   @ManyToOne(() => UserEntity, (user) => user.comments, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'authorId' })
   author: UserEntity;
+
+  @Column()
+  postId: number;
 
   @ManyToOne(() => PostEntity, (post) => post.comments, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'postId' })
   post: PostEntity;
 
   @CreateDateColumn({ name: 'created_at' })
