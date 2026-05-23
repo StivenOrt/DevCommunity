@@ -23,15 +23,11 @@ export class PostService {
 
   async createPost(createPostDto: CreatePostDto): Promise<PostEntity> {
     const { authorUuid, ...newData } = createPostDto;
-
     const newPostData: Partial<PostEntity> = { ...newData };
     newPostData.author = await this.userRepository.findOneBy.uuid(authorUuid);
-
     const newPost = this.postRepository.create(newPostData);
     const savedPost = await this.postRepository.save(newPost);
-
     this.eventEmitter.emit('post.created', new PostCreatedEvent(savedPost));
-
     return savedPost;
   }
 
@@ -61,11 +57,9 @@ export class PostService {
 
   async updatePost(uuid: string, updatePostDto: UpdatePostDto): Promise<PostEntity> {
     const { authorUuid, ...newData } = updatePostDto;
-
     const postData: Partial<PostEntity> = { ...newData };
     const post = await this.getOneBy.uuid(uuid);
     const updatePost = this.postRepository.merge(post, postData);
-
     return this.postRepository.save(updatePost);
   }
 
