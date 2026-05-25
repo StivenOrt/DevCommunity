@@ -40,7 +40,11 @@ export class UserSeederService implements OnModuleInit {
                 email: 'three@gmail.com',
                 password: 'three',
             },
-
+            {
+                username: 'Eduardo',
+                email: 'eduardolop2007@gmail.com',
+                password: 'eduardo',
+            },
         ]
 
         for (const user of usersToCreate) {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,26 +8,49 @@ import { ensureExists } from 'src/common/utils/assertion.util';
 import { POST_ERRORS } from 'src/common/constants/error-messages';
 import { UsersService } from '../users/users.service';
 import { MailService } from 'src/common/Mail/mail.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PostCreatedEvent } from './events/post-created.event';
+import { FriendsService } from '../friends/friends.service';
 
 @Injectable()
 export class PostService {
+  private readonly logger = new Logger(PostService.name);
+
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
     private readonly mailService: MailService,
     private readonly userRepository: UsersService,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly friendsService: FriendsService,
   ) {}
 
   async createPost(createPostDto: CreatePostDto): Promise<PostEntity> {
     const { authorUuid, ...newData } = createPostDto;
-    const newPostData: Partial<PostEntity> = { ...newData };
-    newPostData.author = await this.userRepository.findOneBy.uuid(authorUuid);
+    const author = await this.userRepository.findOneBy.uuid(authorUuid);
+    const newPostData: Partial<PostEntity> = { ...newData, author };
     const newPost = this.postRepository.create(newPostData);
     const savedPost = await this.postRepository.save(newPost);
-    this.eventEmitter.emit('post.created', new PostCreatedEvent(savedPost));
+
+    // Obtener amigos del autor y enviar notificaciones
+    const friends = await this.friendsService.getMyFriends(author);
+    
+    const uniqueEmails = [...new Set(
+      friends.map(friend => friend.email)
+    )];
+
+    await Promise.all(
+      uniqueEmails.map(async (email) => {
+        try {
+          await this.mailService.sendNewPostNotification(
+            email,
+            author.username,
+            savedPost.title,
+            savedPost.content,
+          );
+        } catch (error) {
+          this.logger.error(`Error enviando notificación a ${email}`, error as Error);
+        }
+      })
+    );
+
     return savedPost;
   }
 

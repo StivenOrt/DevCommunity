@@ -6,7 +6,6 @@ import { PostService } from './post.service';
 import { MailModule } from '../../common/Mail/mail.module';
 import { UsersModule } from '../users/users.module';
 import { FriendsModule } from '../friends/friends.module';
-import { PostNotificationListener } from './listeners/post-notification.listener';
 
 @Module({
   imports: [
@@ -15,7 +14,7 @@ import { PostNotificationListener } from './listeners/post-notification.listener
     MailModule,
     FriendsModule,
   ],
-  providers: [PostService, PostNotificationListener],
+  providers: [PostService],
   controllers: [PostController],
   exports: [TypeOrmModule, PostService],
 })
