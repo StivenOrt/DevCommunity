@@ -13,6 +13,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { StudentsModule } from './modules/students/student.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { join } from 'path';
     MailModule,
     FriendsModule,
     ChatModule,
+    StudentsModule,
     EventEmitterModule.forRoot()
   ],
   controllers: [],
