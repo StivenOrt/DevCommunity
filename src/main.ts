@@ -18,7 +18,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 
   const config = new DocumentBuilder()
-    .setTitle('DevCommunity API')
+    .setTitle('Stiven Ortega - DevCommunity API')
     .setDescription('API foro DevCommunity')
     .setVersion('1.0')
     .addBearerAuth() // para enviar el JWT desde Swagger
